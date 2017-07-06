@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>Flocking</title>
+
+    <style>
+      .fk-controls {
+        float: right;
+      }
+    </style>
+
+  </head>
+  <body>
+    <svg class="fk-canvas" width="800" height="800" style="background: #cccccc"> </svg>
+
+    <div class="fk-controls">
+      <ul>
+        <li>
+          <button class="fk-stop">Stop</button>
+          <button class="fk-start">Start</button>
+        </li>
+        <li>
+          <button class="fk-toggle-range">Toggle Range Display</button>
+        </li>
+        <li>
+          <button class="fk-toggle-heading">Toggle Heading Display</button>
+        </li>
+      </ul>
+
+      <ul>
+        <li>
+          <label>Boids</label>
+          <input class="fk-boids" type="nu`mber" value="2" />
+        </li>
+        <li>
+          <label>Range</label>
+          <input class="fk-range" type="number" value="10000" />
+        </li>
+      </ul>
+
+      <ul>
+        <li>
+          <label>Alignment Weight</label>
+          <input class="fk-weight-alignment" type="number" value="100" />
+        </li>
+
+        <li>
+          <label>Cohesion Weight</label>
+          <input class="fk-weight-cohesion" type="number" value="100" />
+        </li>
+
+        <li>
+          <label>Separation Weight</label>
+          <input class="fk-weight-separation" type="number" value="100" />
+        </li>
+      </ul>
+
+      <ul>
+        <li>
+          <label>Group Alignment Weight</label>
+          <input class="fk-group-weight-alignment" type="number" value="100" />
+        </li>
+
+        <li>
+          <label>Group Cohesion Weight</label>
+          <input class="fk-group-weight-cohesion" type="number" value="100" />
+        </li>
+
+        <li>
+          <label>Group Separation Weight</label>
+          <input class="fk-group-weight-separation" type="number" value="100" />
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/main.js"> </script>
+  </body>
+</html>
