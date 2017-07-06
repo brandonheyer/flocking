@@ -23,7 +23,31 @@ module.exports = function (grunt) {
     },
 
     browserify: {
-      dev: {
+      demo: {
+        src: [
+          './src/**/*',
+          '!./src/main.js',
+          '!./src/presentation.js'
+        ],
+        dest: './dist/js/demo.js',
+        options: {
+          browserifyOptions: {
+            debug: true
+          },
+          transform: [
+            [
+              'babelify',
+              {
+                'presets': [
+                  'es2015'
+                ]
+              }
+            ]
+          ]
+        }
+      },
+
+      dist: {
         src: [
           './src/**/*'
         ],
@@ -52,9 +76,20 @@ module.exports = function (grunt) {
         tasks: ['replace']
       },
 
-      js: {
+      dist: {
         files: './src/**/*',
-        tasks: ['browserify'],
+        tasks: ['browserify:dist'],
+        options: {
+          livereload: {
+            host: 'localhost',
+            port: 9000
+          }
+        }
+      },
+
+      demo: {
+        files: './src/**/*',
+        tasks: ['browserify:demo'],
         options: {
           livereload: {
             host: 'localhost',
@@ -71,5 +106,18 @@ module.exports = function (grunt) {
 
   grunt.initConfig(config);
 
+  grunt.registerTask('noDemoWatch', function() {
+    delete grunt.config.getRaw('watch').demo;
+  });
+
+  grunt.registerTask('noDistWatch', function() {
+    var config = grunt.config.getRaw('watch');
+
+    delete config.presentation;
+    delete config.dist;
+  });
+
   grunt.registerTask('default', ['replace', 'browserify', 'watch']);
+  grunt.registerTask('dist', ['replace', 'browserify:dist', 'noDemoWatch', 'watch']);
+  grunt.registerTask('demo', ['replace', 'browserify:demo', 'noDistWatch', 'watch']);
 };
