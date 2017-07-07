@@ -49,7 +49,8 @@ module.exports = function (grunt) {
 
       dist: {
         src: [
-          './src/**/*'
+          './src/**/*',
+          '!./src/demo.js'
         ],
         dest: './dist/js/main.js',
         options: {
@@ -117,7 +118,8 @@ module.exports = function (grunt) {
     delete config.dist;
   });
 
-  grunt.registerTask('default', ['replace', 'browserify', 'watch']);
+  grunt.registerTask('default', ['replace', 'browserify']);
+  grunt.registerTask('watch', ['replace', 'browserify', 'watch']);
   grunt.registerTask('dist', ['replace', 'browserify:dist', 'noDemoWatch', 'watch']);
   grunt.registerTask('demo', ['replace', 'browserify:demo', 'noDistWatch', 'watch']);
 };

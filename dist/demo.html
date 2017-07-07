@@ -3,8 +3,14 @@
     <title>Flocking</title>
 
     <style>
+      body {
+        padding: 2em;
+      }
+
       .fk-controls {
+        font-size: 16px;
         float: right;
+        margin-right: 2em;
       }
     </style>
 
@@ -29,45 +35,73 @@
       <ul>
         <li>
           <label>Boids</label>
-          <input class="fk-boids" type="nu`mber" value="2" />
+          <input class="fk-boids" type="nu`mber" />
         </li>
         <li>
+          <label>Radius</label>
+          <input class="fk-radius" type="number" />
+        </li><!--
+        <li>
+          <label>Radius 2</label>
+          <input class="fk-radius-2" type="number" />
+        </li>
+        <li>
+          <label>Radius Steps</label>
+          <input class="fk-radius-steps" type="number" />
+        </li>-->
+        <li>
           <label>Range</label>
-          <input class="fk-range" type="number" value="10000" />
+          <input class="fk-range" type="number" />
+        </li>
+        <li>
+          <label>Speed</label>
+          <input class="fk-speed" type="number" />
+        </li>
+        <li>
+          <label>Speed 2</label>
+          <input class="fk-speed-2" type="number" />
+        </li>
+        <li>
+          <label>Speed Steps</label>
+          <input class="fk-speed-steps" type="number" />
         </li>
       </ul>
 
       <ul>
         <li>
           <label>Alignment Weight</label>
-          <input class="fk-weight-alignment" type="number" value="100" />
+          <input class="fk-weight-alignment" type="number" />
         </li>
 
         <li>
           <label>Cohesion Weight</label>
-          <input class="fk-weight-cohesion" type="number" value="100" />
+          <input class="fk-weight-cohesion" type="number" />
         </li>
 
         <li>
           <label>Separation Weight</label>
-          <input class="fk-weight-separation" type="number" value="100" />
+          <input class="fk-weight-separation" type="number" />
         </li>
       </ul>
 
       <ul>
         <li>
+          <label>Groups</label>
+          <input class="fk-groups" type="number" />
+        </li>
+        <li>
           <label>Group Alignment Weight</label>
-          <input class="fk-group-weight-alignment" type="number" value="100" />
+          <input class="fk-group-weight-alignment" type="number" />
         </li>
 
         <li>
           <label>Group Cohesion Weight</label>
-          <input class="fk-group-weight-cohesion" type="number" value="100" />
+          <input class="fk-group-weight-cohesion" type="number" />
         </li>
 
         <li>
           <label>Group Separation Weight</label>
-          <input class="fk-group-weight-separation" type="number" value="100" />
+          <input class="fk-group-weight-separation" type="number" />
         </li>
       </ul>
     </div>

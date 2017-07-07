@@ -1,0 +1,68 @@
+body {
+  background: #f7f7f7;
+  font-family: 'Open Sans', sans-serif;
+}
+
+section {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+h2 {
+  text-transform: uppercase;
+  text-align: center;
+  color: #00aeef;
+  font-size: 3rem;
+}
+
+h2:last-child {
+  top: 50%;
+  margin-top: -3em;
+  position: relative;
+}
+
+h3 {
+  text-align: center;
+  font-size: 2rem;
+  margin: .75em;
+  width: 50
+  margin: 0 auto;
+}
+
+h3:first-of-type {
+  padding-top: 1.5em;
+}
+
+svg {
+  margin: 0 auto;
+  display: block;
+}
+
+pre {
+  width: 50%;
+  margin: 0 auto;
+  background: #e7e7e7;
+  border: 1px solid #cccccc;
+  padding: 3em 3em 4em;
+  font-size: 1.5em;
+  line-height: 1.5em;
+}
+
+.token.operator {
+  background: none;
+}
+
+ul {
+  width: 50%;
+  margin: 0 auto;
+  font-size: 1.5em;
+  line-height: 1.75em;
+}
+
+img {
+  width: 50%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+}

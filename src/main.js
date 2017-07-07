@@ -1,14 +1,10 @@
-import d3 from 'd3';
 import $ from 'jQuery';
 import * as Prism from 'prismjs';
 import showdown from 'showdown';
 
-import {Point} from '2d-engine';
-
 import presentation from './presentation';
 
 import Engine from './engine/Engine';
-import Boid from './entities/Boid';
 import BasicBoid from './entities/BasicBoid';
 
 const STARTING_BOIDS = 100;
@@ -119,11 +115,28 @@ var sectionProcessLookup = {
       alignmentWeight: .01,
       cohesionWeight: .01,
       separationWeight: .01,
+      groupAlignmentWeight: 1,
+      groupCohesionWeight: 2,
+      groupSeparationWeight: 1
     }, {
       BoidClass: BasicBoid,
-      radius: 5,
+      radius: 8,
       speed: .5,
-      range: 500
+      range: 500,
+      initialize: function() {
+        this.group = Math.floor(Math.random() * 2);
+      },
+      render: function() {
+        switch(this.group) {
+          case 0:
+            this.fill = '#00aa00';
+            break;
+
+          case 1:
+            this.fill = '#0000ff';
+            break;
+        }
+      }
     });
   },
 
@@ -135,16 +148,18 @@ var sectionProcessLookup = {
       alignmentWeight: .01,
       cohesionWeight: 1.2,
       separationWeight: 1,
-      groupAlignmentWeight: .01,
-      groupCohesionWeight: 1.2,
-      groupSeparationWeight: 1
+      groupAlignmentWeight: 0,
+      groupCohesionWeight: 1.5,
+      groupSeparationWeight: -1
     }, {
       BoidClass: BasicBoid,
       radius: 5,
-      speed: 1,
-      range: 500,
+      range: 2500,
       initialize: function() {
+        var randomStep;
+
         this.group = Math.floor(Math.random() * 5);
+        this.speed = (50 + (10 * Math.floor(Math.random() * 5))) / 100;
       },
       render: function() {
         switch(this.group) {
@@ -174,34 +189,32 @@ var sectionProcessLookup = {
 
   alltogether: function() {
     return makeEngine({
-      boidCount: 10,
-      globalRange: 1000,
+      boidCount: 250,
       rangeVisible: false,
       headingVisible: true,
-      alignmentWeight: .01,
-      cohesionWeight: .01,
-      separationWeight: .01,
+      alignmentWeight: .001,
+      cohesionWeight: .11,
+      separationWeight: .1,
       groupAlignmentWeight: 1,
-      groupCohesionWeight: 2,
-      groupSeparationWeight: 1
+      groupCohesionWeight: 1.1,
+      groupSeparationWeight: 1,
     }, {
       BoidClass: BasicBoid,
-      range: 5000,
       initialize: function() {
         this.weight = Math.floor((Math.random() * 100) + 5);
 
-        if (this.weight < 90) {
-          this.weight = 5;
+        if (this.weight < 99) {
+          this.weight = 2;
           this.radius = 20;
-          this.speed = .5;
-        } else if (this.weight < 100) {
-          this.weight = 100;
-          this.radius = 40;
-          this.speed = 1;
+          this.range = 100;
+          this.speed = .75;
+          this.group = 1;
         } else {
-          this.weight = 250;
+          this.weight = 1;
           this.radius = 60;
+          this.range = 200;
           this.speed = 1.5;
+          this.group = 2;
         }
       }
     });
@@ -233,7 +246,7 @@ var sectionProcessLookup = {
     }, {
       speed: .5,
       radius: 20,
-      range: 250
+      range: 500
     });
   }
 };

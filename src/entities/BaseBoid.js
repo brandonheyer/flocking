@@ -30,9 +30,10 @@ class BaseBoid extends BaseEntity {
     this.weight = options.weight || 1;
     this.group = options.group || 1;
     this.speed = options.speed || 1;
-    this.radius = options.radius || 100;
+    this.oldRadius = this.radius = options.radius || 100;
     this.heading = new Vector(0, 0);
     this.range = options.range || this.xScale.domain()[1];
+    this.oldGroup = this.group;
 
     if (options.initialize) {
       options.initialize.bind(this)();
@@ -51,6 +52,17 @@ class BaseBoid extends BaseEntity {
         .attr('r', this.xScale(this.range));
 
       this.oldRange = this.range;
+    }
+
+    if (this.radius !== this.oldRadius) {
+      this.updateStyles();
+      this.oldRadius = this.radius;
+    }
+
+    if (this.group !== this.oldGroup) {
+      this.updateStyles();
+
+      this.oldGroup = this.group;
     }
 
     if (this.rangeVisible !== this.oldRangeVisible) {
@@ -83,8 +95,14 @@ class BaseBoid extends BaseEntity {
       .attr('transform', transformVal);
   }
 
+  updateElements() {
+    this.boidElement = this.element.select('.boid');
+    this.rangElement = this.element.select('.boid-range');
+    this.headingElement = this.element.select('line');
+  }
+
   renderRange() {
-    this.rangeElement = this.el.append('circle')
+    this.rangeElement = this.element.append('circle')
       .attr('r', this.xScale(this.range))
       .attr('fill', 'none')
       .attr('stroke', 'rgba(255, 0, 0, 0.1)')
@@ -95,7 +113,7 @@ class BaseBoid extends BaseEntity {
   }
 
   renderHeading() {
-    this.headingElement = this.el.append('line')
+    this.headingElement = this.element.append('line')
       .attr('y1', 0)
       .attr('x1', this.xScale(this.radius * 1.25))
       .attr('y1', 0)
@@ -107,19 +125,25 @@ class BaseBoid extends BaseEntity {
     this.oldHeadingVisible = this.headingVisible = true;
   }
 
-  render(canvas) {
-    var el = this.el = canvas.append('g');
-
-    this.fill = '#0000ff';
-
+  updateStyles() {
     if (this.renderMethod) {
       this.renderMethod();
     }
 
-    this.boidElement = el.append('circle')
+    this.boidElement
       .attr('r', this.xScale(this.radius))
       .attr('fill', this.fill)
       .attr('class', 'boid');
+  }
+
+  render(canvas) {
+    var el = this.element = canvas.append('g');
+
+    this.fill = '#0000ff';
+
+    this.boidElement = el.append('circle');
+
+    this.updateStyles();
 
     if (this.rangeVisible) {
       this.renderRange();
