@@ -9,6 +9,18 @@ class Engine extends BaseEngine {
 
     options = options || {};
 
+    this.alignmentVectors = [];
+    this.cohesionVectors = [];
+    this.separationVectors = [];
+
+    this.alignmentWeight = 1;
+    this.cohesionWeight = 1;
+    this.separationWeight = 1;
+
+    this.groupAlignmentWeight = 1;
+    this.groupCohesionWeight = 1;
+    this.groupSeparationWeight = 1;
+
     this.rangeVisible = options.rangeVisible || false;
     this.headingVisible =  options.headingVisible || false;
 
@@ -19,6 +31,22 @@ class Engine extends BaseEngine {
     this.groupAlignmentWeight = (options.groupAlignmentWeight !== undefined) ? options.groupAlignmentWeight : 1;
     this.groupCohesionWeight = (options.groupCohesionWeight !== undefined) ? options.groupCohesionWeight : 1;
     this.groupSeparationWeight = (options.groupSeparationWeight !== undefined) ? options.groupSeparationWeight : 1;
+  }
+
+  addEntity(entity) {
+    super.addEntity(entity);
+
+    this.alignmentVectors.push(new Vector(0, 0));
+    this.cohesionVectors.push(new Vector(0, 0));
+    this.separationVectors.push(new Vector(0, 0));
+  }
+
+  removeEntitAt(index) {
+    super.removeEntitAt(index);
+
+    this.alignmentVectors.splice(index, 1);
+    this.cohesionVectors.splice(index, 1);
+    this.separationVectors.splice(index, 1);
   }
 
   locatecloseEntities(other) {
@@ -130,6 +158,12 @@ class Engine extends BaseEngine {
       this.finalizeCohesion(cohesionVector, entity, closeEntities);
       this.finalizeSeparation(separationVector, closeEntities);
     }
+  }
+
+  initializeVectors(a, c, s) {
+    a.set(0, 0);
+    c.set(0, 0);
+    s.set(0, 0);
   }
 
   finalizeElement(entity, index) {

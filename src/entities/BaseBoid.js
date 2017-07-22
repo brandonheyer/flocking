@@ -136,6 +136,14 @@ class BaseBoid extends BaseEntity {
       .attr('class', 'boid');
   }
 
+  destroy() {
+    this.element.remove();
+    this.element = undefined;
+    this.boidElement = undefined;
+    this.headingElement = undefined;
+    this.rangeElement = undefined;
+  }
+
   render(canvas) {
     var el = this.element = canvas.append('g');
 
@@ -152,8 +160,6 @@ class BaseBoid extends BaseEntity {
     if (this.headingVisible) {
       this.renderHeading();
     }
-
-    return el;
   }
 }
 
