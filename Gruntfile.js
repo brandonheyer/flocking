@@ -72,21 +72,21 @@ module.exports = function (grunt) {
     },
 
     watch: {
-      presentation: {
-        files: './presentation.md',
-        tasks: ['replace']
-      },
+      // presentation: {
+      //   files: './presentation.md',
+      //   tasks: ['replace']
+      // },
 
-      dist: {
-        files: './src/**/*',
-        tasks: ['browserify:dist'],
-        options: {
-          livereload: {
-            host: 'localhost',
-            port: 9000
-          }
-        }
-      },
+      // dist: {
+      //   files: './src/**/*',
+      //   tasks: ['browserify:dist'],
+      //   options: {
+      //     livereload: {
+      //       host: 'localhost',
+      //       port: 9000
+      //     }
+      //   }
+      // },
 
       demo: {
         files: './src/**/*',
@@ -119,7 +119,7 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('default', ['replace', 'browserify']);
-  grunt.registerTask('watch', ['replace', 'browserify', 'watch']);
+  grunt.registerTask('watch', ['replace', 'browserify:demo', 'watch']);
   grunt.registerTask('dist', ['replace', 'browserify:dist', 'noDemoWatch', 'watch']);
   grunt.registerTask('demo', ['replace', 'browserify:demo', 'noDistWatch', 'watch']);
 };

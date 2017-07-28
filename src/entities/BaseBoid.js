@@ -147,14 +147,13 @@ class BaseBoid extends BaseEntity {
   render(canvas) {
     var el = this.element = canvas.append('g');
 
-    this.fill = '#0000ff';
-
     this.boidElement = el.append('circle');
 
     this.updateStyles();
+    this.renderRange();
 
     if (this.rangeVisible) {
-      this.renderRange();
+
     }
 
     if (this.headingVisible) {
