@@ -136,9 +136,9 @@ function updateParams() {
   window.location.hash = res;
 }
 
-for (var i = 0; i < (params.boids || STARTING_BOIDS); i++) {
-  addEntity(entityOptions);
-}
+// for (var i = 0; i < (params.boids || STARTING_BOIDS); i++) {
+//   addEntity(entityOptions);
+// }
 
 engine.start();
 
