@@ -1,6 +1,8 @@
+import _ from 'lodash';
 import * as d3 from 'd3';
 import {Vector, Engine as BaseEngine} from '2d-engine';
 
+import BasicBoid from '../entities/BasicBoid';
 
 var tempVector = new Vector(0, 0);
 
@@ -9,7 +11,7 @@ class Engine extends BaseEngine {
     super(svgClass, pixelX, pixelY, worldX, worldY);
 
     options = options || {};
-    
+
     this.alignmentVectors = [];
     this.cohesionVectors = [];
     this.separationVectors = [];
@@ -44,7 +46,13 @@ class Engine extends BaseEngine {
     this.separationVectors.push(new Vector(0, 0));
   }
 
-  removeEntitAt(index) {
+  removeEntityById(id) {
+    if (this.entityLookup[id]) {
+      this.removeEntityAt(this.entities.indexOf(this.entityLookup[id]));
+    }
+  }
+
+  removeEntityAt(index) {
     super.removeEntitAt(index);
 
     this.alignmentVectors.splice(index, 1);
@@ -196,50 +204,8 @@ class Engine extends BaseEngine {
     this.processEntity(entity, index);
   }
 
-  getJqlQuery() {
-    return function main() {
-      var date = new Date();
-      return join(
-        Events({
-          from_date: date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate(),
-          to_date:  date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
-        }),
-        People()
-      )
-      .filter(
-        function(tuple) {
-          return tuple.event && tuple.user && tuple.event.time > +(new Date()) - ((60 * 60 * 1000 * 4) + (60 * 60 * 1000))
-        }
-      )
-      .groupBy(['event.time', 'user.distinct_id', 'event.properties.csClient', 'user.properties.$email', 'event.properties.csModule'],
-          mixpanel.reducer.count()
-      )
-      .sortDesc('key.0');
-    }
-  }
-
-  processJql(results) {
-    d3.select('.mp-response').text(
-      JSON.stringify(results, null, 3)
-    );
-
-
-  }
-
   process(delta) {
-    var context = this;
-
     super.process(delta);
-
-    this.lastUpdate += delta;
-
-    if (this.lastUpdate > 2500) {
-      MP.api.jql(this.getJqlQuery()).done(
-        (results) => this.processJql(results)
-      );
-
-      this.lastUpdate = 0;
-    }
 
     this.entities.forEach(this.finalizeElement.bind(this));
   }

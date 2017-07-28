@@ -1,6 +1,6 @@
 import $ from 'jQuery';
 
-import Engine from './engine/Engine';
+import ActivityEngine from './engine/ActivityEngine';
 import BasicBoid from './entities/BasicBoid';
 
 const STARTING_BOIDS = 500;
@@ -68,7 +68,7 @@ entityOptions = {
   }
 }
 
-var engine = new Engine(
+var engine = new ActivityEngine(
   '.fk-canvas',
   1400, 787,
   5000, 2812,
