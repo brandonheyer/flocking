@@ -3,34 +3,20 @@ import * as d3 from 'd3';
 import {Vector, Engine as BaseEngine} from '2d-engine';
 
 import BasicBoid from '../entities/BasicBoid';
+import ActivityBoid from '../entities/ActivityBoid';
 
 var tempVector = new Vector(0, 0);
 
 class Engine extends BaseEngine {
-  constructor(svgClass, pixelX, pixelY, worldX, worldY, options) {
-    super(svgClass, pixelX, pixelY, worldX, worldY);
-
-    options = options || {};
-
-    this.rangeVisible = true;
-    this.headingVisible =  options.headingVisible || false;
-  }
-
-  addEntity(entity) {
-    super.addEntity(entity);
-  }
-
   removeEntityById(id) {
     if (this.entityLookup[id]) {
       this.removeEntityAt(this.entities.indexOf(this.entityLookup[id]));
     }
   }
 
-  removeEntityAt(index) {
-    super.removeEntityAt(index);
-  }
-
   locatecloseEntities(other) {
+    var distance;
+
     if (this.entity.id === other.id) {
       return;
     }
@@ -38,7 +24,9 @@ class Engine extends BaseEngine {
     tempVector.x = other.pos.x - this.entity.pos.x;
     tempVector.y = other.pos.y - this.entity.pos.y;
 
-    if (tempVector.magnitudeSq() <= this.entity.rangeSq) {
+    distance = tempVector.magnitudeSq();
+
+    if (distance <= this.entity.rangeSq) {
       this.closeEntities.push(other);
 
       if (this.entity.group === other.group) {
@@ -46,6 +34,14 @@ class Engine extends BaseEngine {
       } else {
         this.nonGroup++;
       }
+      //
+      // if (!this.entity.user && other.user && this.entity.group === other.group && other.speed > .5) {
+      //   other.speed /= 1 + (((distance - this.entity.rangeSq) / distance) * (this.delta / 5000));
+      // }
+    } else {
+      // if (this.entity.group === other.group && !this.entity.user && other.user && other.speed < 0.6) {
+      //   other.speed *= 1 + (((distance - this.entity.rangeSq) / distance) * (this.delta / 5000));
+      // }
     }
   }
 
@@ -54,9 +50,9 @@ class Engine extends BaseEngine {
     tempVector.y = other.heading.y * other.speed;
 
     if (entity.group === other.group) {
-      this.groupAlignmentVector.plusEquals(tempVector);
+      entity.groupAlignmentVector.plusEquals(tempVector);
     } else {
-      vector.plusEquals(tempVector);
+      entity.alignmentVector.plusEquals(tempVector);
     }
   }
 
@@ -74,9 +70,9 @@ class Engine extends BaseEngine {
     tempVector.y = other.pos.y;
 
     if (entity.group === other.group) {
-      this.groupCohesionVector.plusEquals(tempVector);
+      entity.groupCohesionVector.plusEquals(tempVector);
     } else {
-      vector.plusEquals(tempVector);
+      entity.cohesionVector.plusEquals(tempVector);
     }
   }
 
@@ -90,13 +86,17 @@ class Engine extends BaseEngine {
   }
 
   calculateSeparation(vector, entity, other) {
+    var tempMagnitude;
+
     tempVector.x = (other.pos.x - entity.pos.x);
     tempVector.y = (other.pos.y - entity.pos.y);
 
+    tempMagnitude = tempVector.magnitudeSq();
+
     if (entity.group === other.group) {
-      this.groupSeparationVector.plusEquals(tempVector);
+      entity.groupSeparationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
     } else {
-      vector.plusEquals(tempVector);
+      entity.separationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
     }
   }
 
@@ -153,16 +153,16 @@ class Engine extends BaseEngine {
 
     this.closeEntities.forEach(this.calculate.bind(this));
 
-    if (this.closeGroup.length !== 0) {
-      this.finalizeAlignment(entity, groupAlignmentVector, this.closeGroup, entity.groupAlignmentWeight);
-      this.finalizeCohesion(entity, groupCohesionVector, this.closeGroup, entity.groupCohesionWeight);
-      this.finalizeSeparation(entity, groupSeparationVector, this.closeGroup, entity.groupSeparationWeight);
+    if (this.closeGroup !== 0) {
+      this.finalizeAlignment(entity, entity.groupAlignmentVector, this.closeGroup, entity.groupAlignmentWeight);
+      this.finalizeCohesion(entity, entity.groupCohesionVector, this.closeGroup, entity.groupCohesionWeight);
+      this.finalizeSeparation(entity, entity.groupSeparationVector, this.closeGroup, entity.groupSeparationWeight);
     }
 
-    if (this.nonGroup.length !== 0) {
-      this.finalizeAlignment(entity, alignmentVector, this.nonGroup, entity.alignmentWeight);
-      this.finalizeCohesion(entity, cohesionVector, this.nonGroup, entity.cohesionWeight);
-      this.finalizeSeparation(entity, separationVector, this.nonGroup, entity.separationWeight);
+    if (this.nonGroup !== 0) {
+      this.finalizeAlignment(entity, entity.alignmentVector, this.nonGroup, entity.alignmentWeight);
+      this.finalizeCohesion(entity, entity.cohesionVector, this.nonGroup, entity.cohesionWeight);
+      this.finalizeSeparation(entity, entity.separationVector, this.nonGroup, entity.separationWeight);
     }
   }
 
@@ -176,28 +176,21 @@ class Engine extends BaseEngine {
   }
 
   finalizeElement(entity, index) {
-    var alignmentVector = entity.alignmentVector;
-    var cohesionVector = entity.cohesionVector;
-    var separationVector = entity.separationVector;
-    var groupAlignmentVector = entity.groupAlignmentVector;
-    var groupCohesionVector = entity.groupCohesionVector;
-    var groupSeparationVector = entity.groupSeparationVector;
+    entity.alignmentVector.normalize();
+    entity.cohesionVector.normalize();
+    entity.separationVector.normalize();
 
-    alignmentVector.normalize();
-    cohesionVector.normalize();
-    separationVector.normalize();
+    entity.groupAlignmentVector.normalize();
+    entity.groupCohesionVector.normalize();
+    entity.groupSeparationVector.normalize();
 
-    groupAlignmentVector.normalize();
-    groupCohesionVector.normalize();
-    groupSeparationVector.normalize();
+    entity.heading.scalePlusEquals(entity.alignmentWeight, entity.alignmentVector);
+    entity.heading.scalePlusEquals(entity.cohesionWeight, entity.cohesionVector);
+    entity.heading.scalePlusEquals(entity.separationWeight, entity.separationVector);
 
-    entity.heading.scalePlusEquals(entity.alignmentWeight, alignmentVector);
-    entity.heading.scalePlusEquals(entity.cohesionWeight, cohesionVector);
-    entity.heading.scalePlusEquals(entity.separationWeight, separationVector);
-
-    entity.heading.scalePlusEquals(entity.groupAlignmentWeight, groupAlignmentVector);
-    entity.heading.scalePlusEquals(entity.groupCohesionWeight, groupCohesionVector);
-    entity.heading.scalePlusEquals(entity.groupSeparationWeight, groupSeparationVector);
+    entity.heading.scalePlusEquals(entity.groupAlignmentWeight, entity.groupAlignmentVector);
+    entity.heading.scalePlusEquals(entity.groupCohesionWeight, entity.groupCohesionVector);
+    entity.heading.scalePlusEquals(entity.groupSeparationWeight, entity.groupSeparationVector);
 
     entity.heading.normalize();
 

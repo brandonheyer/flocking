@@ -31,6 +31,7 @@ class BaseBoid extends BaseEntity {
     this.group = options.group || 1;
     this.speed = options.speed || 1;
     this.oldRadius = this.radius = options.radius || 100;
+    this.radiusSq = this.radius * this.radius;
     this.heading = new Vector(0, 0);
     this.range = options.range || this.xScale.domain()[1];
     this.oldGroup = this.group;
@@ -47,52 +48,18 @@ class BaseBoid extends BaseEntity {
 
     transformVal = 'translate(' + this.xScale(this.pos.x) + ',' + this.yScale(this.pos.y) + ')';
 
-    if (this.range !== this.oldRange && this.rangeElement) {
-      this.rangeElement
-        .attr('r', this.xScale(this.range));
-
-      this.oldRange = this.range;
-    }
-
-    if (this.radius !== this.oldRadius) {
-      this.updateStyles();
-      this.oldRadius = this.radius;
-    }
-
     if (this.group !== this.oldGroup) {
       this.updateStyles();
 
       this.oldGroup = this.group;
     }
 
-    if (this.rangeVisible !== this.oldRangeVisible) {
-      if (this.rangeVisible) {
-        this.renderRange();
-      } else if (this.rangeElement) {
-        this.rangeElement.remove();
-        this.rangeElement = undefined;
-      }
-
-      this.oldRangeVisible = this.rangeVisible;
-    }
-
-    if (this.headingVisible !== this.oldHeadingVisible) {
-      if (this.headingVisible) {
-        this.renderHeading();
-      } else if (this.headingElement) {
-        this.headingElement.remove();
-        this.headingElement = undefined;
-      }
-
-      this.oldHeadingVisible = this.headingVisible;
-    }
-
-    if (this.headingVisible) {
-      transformVal += 'rotate(' + (this.heading.angle() * 180 / Math.PI) + ')';
-    }
-
     this.element
       .attr('transform', transformVal);
+  }
+
+  setSpeed(speed) {
+    this.speed = speed;
   }
 
   updateElements() {
@@ -134,6 +101,10 @@ class BaseBoid extends BaseEntity {
       .attr('r', this.xScale(this.radius))
       .attr('fill', this.fill)
       .attr('class', 'boid');
+
+    if (this.stroke) {
+      this.boidElement.attr('stroke', this.stroke).attr('stroke-weight', 3).attr('fill', 'none');
+    }
   }
 
   destroy() {

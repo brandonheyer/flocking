@@ -20,7 +20,7 @@ var radius1;
 var radius2;
 var radiusSteps;
 
-query.split('&').forEach(function(p) {
+query.split('&').forEach(function(p) { 
   p = p.split('=');
   params[p[0]] = p[1];
 });
@@ -68,10 +68,12 @@ entityOptions = {
   }
 }
 
+var w = $(document).width();
+var h = $(document).height();
 var engine = new ActivityEngine(
   '.fk-canvas',
-  1400, 787,
-  5000, 2812,
+  w, h,
+  5000, (5000 * h) / w,
   {
     alignmentWeight: .0005,
     cohesionWeight: .01,
@@ -81,6 +83,11 @@ var engine = new ActivityEngine(
     groupSeparationWeight: params.gsw
   }
 );
+
+$('.logo').css({
+  left: (w - 356) / 2,
+  top: (h - 84) / 2
+});
 
 function getRandomGroup() {
   return Math.floor(Math.random() * groupCount);
@@ -141,16 +148,3 @@ function updateParams() {
 // }
 
 engine.start();
-
-$('.fk-stop').on('click', engine.stop.bind(engine));
-$('.fk-start').on('click', engine.start.bind(engine));
-
-$('.fk-toggle-range').on('click', function() {
-  engine.rangeVisible = !engine.rangeVisible;
-  entityOptions.rangeVisible = engine.rangeVisible;
-});
-
-$('.fk-toggle-heading').on('click', function() {
-  engine.headingVisible = !engine.headingVisible;
-  entityOptions.headingVisible = engine.headingVisible;
-});

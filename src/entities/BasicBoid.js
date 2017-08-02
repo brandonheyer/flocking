@@ -13,19 +13,19 @@ class BasicBoid extends BaseBoid {
     this.groupAlignmentVector = new Vector(0, 0);
     this.groupCohesionVector = new Vector(0, 0);
     this.groupSeparationVector = new Vector(0, 0);
-
-    this.alignmentWeight = .00000001;
-    this.groupAlignmentWeight = .001;
-
-    this.cohesionWeight = .00000001;
-    this.groupCohesionWeight = .05;
-
-    this.separationWeight = .00000001;
-    this.groupSeparationWeight = .01;
   }
 
   initializeProperties(options) {
     super.initializeProperties(options);
+
+    this.alignmentWeight = .00001;
+    this.groupAlignmentWeight = .001;
+
+    this.cohesionWeight = .00001;
+    this.groupCohesionWeight = .09;
+
+    this.separationWeight = .00001;
+    this.groupSeparationWeight = .05;
 
     this.heading = new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1);
   }
@@ -33,17 +33,8 @@ class BasicBoid extends BaseBoid {
   render(canvas) {
     super.render(canvas);
 
-    this.groupElement = this.element.append('text')
-      .text(this.group);
-
     this.oldRange = this.range;
     this.oldRangeVisible = this.rangeVisible = true;
-  }
-
-  update(delta) {
-    super.update(delta);
-
-    this.groupElement.text(this.group);
   }
 }
 

@@ -2,8 +2,8 @@ import {Vector} from '2d-engine';
 
 import BasicBoid from './BasicBoid';
 
-const LIFESPAN = 40000;
-const BASE_SPEED = 1;
+const LIFESPAN = 120000;
+const BASE_SPEED = .5;
 
 class ActivityBoid extends BasicBoid {
   constructor(options) {
@@ -11,8 +11,9 @@ class ActivityBoid extends BasicBoid {
 
     this.degrees = 0;
 
-    this.rangeVisible = true;
-    this.range = 1000;
+    this.rangeVisible = false;
+    this.range = 10000;
+    this.user = true;
   }
 
   initializeProperties(options) {
@@ -23,7 +24,7 @@ class ActivityBoid extends BasicBoid {
     this.isCs = options.isCs;
     this.speed = BASE_SPEED;
     this.timestamp = 0;
-    this.radius = 25;
+    this.radius = 20;
 
     this.keepAlive(options.timestamp);
   }
@@ -40,12 +41,11 @@ class ActivityBoid extends BasicBoid {
       this.degrees = (Math.floor(Math.random() * 40) - 20) * Math.PI / 180;
     }
 
-    //this.heading.rotate(this.degrees * (delta / 1000));
+    this.heading.rotate(this.degrees * delta / 1000);
 
     if (this.lastUpdate < LIFESPAN * .75) {
       this.speed = BASE_SPEED * (this.lastUpdate / (LIFESPAN * .75));
-    } else {
-      this.speed = BASE_SPEED;
+      this.boidElement.attr('opacity', (this.lastUpdate / (LIFESPAN * .75)));
     }
 
     if (this.lastUpdate < 0) {
@@ -62,6 +62,11 @@ class ActivityBoid extends BasicBoid {
       this.lastUpdate = LIFESPAN;
       this.lastRotate = 1000;
       this.dead = false;
+      this.speed = (this.speed < BASE_SPEED) ? BASE_SPEED : this.speed;
+
+      if (this.boidElement) {
+        this.boidElement.attr('opacity', 1);
+      }
     }
   }
 }
