@@ -22,9 +22,12 @@ class ActivityBoid extends BasicBoid {
     this.mpId = options.mpId;
     this.client = options.client;
     this.isCs = options.isCs;
-    this.speed = BASE_SPEED;
+    this.speed = this.baseSpeed =  (this.module === 'unsubscribe') ? BASE_SPEED * 2 : BASE_SPEED;;
     this.timestamp = 0;
-    this.radius = 20;
+    this.module = options.module;
+
+    this.baseLifespan = (this.module === 'unsubscribe') ? LIFESPAN / 4 : LIFESPAN;
+    this.radius = (this.module === 'unsubscribe') ? 10 : 20;
 
     this.keepAlive(options.timestamp);
   }
@@ -43,9 +46,9 @@ class ActivityBoid extends BasicBoid {
 
     this.heading.rotate(this.degrees * delta / 1000);
 
-    if (this.lastUpdate < LIFESPAN * .75) {
-      this.speed = BASE_SPEED * (this.lastUpdate / (LIFESPAN * .75));
-      this.boidElement.attr('opacity', (this.lastUpdate / (LIFESPAN * .75)));
+    if (this.lastUpdate < this.baseLifespan * .75) {
+      this.speed = this.baseSpeed * (this.lastUpdate / (this.baseLifespan * .75));
+      this.boidElement.attr('opacity', (this.lastUpdate / (this.baseLifespan * .75)));
     }
 
     if (this.lastUpdate < 0) {
@@ -59,10 +62,10 @@ class ActivityBoid extends BasicBoid {
     if (this.timestamp !== timestamp) {
       this.timestamp = timestamp;
 
-      this.lastUpdate = LIFESPAN;
+      this.lastUpdate = this.baseLifespan;
       this.lastRotate = 1000;
       this.dead = false;
-      this.speed = (this.speed < BASE_SPEED) ? BASE_SPEED : this.speed;
+      this.speed = (this.speed < this.baseSpeed) ? this.baseSpeed : this.speed;
 
       if (this.boidElement) {
         this.boidElement.attr('opacity', 1);

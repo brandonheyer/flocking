@@ -20,7 +20,7 @@ var radius1;
 var radius2;
 var radiusSteps;
 
-query.split('&').forEach(function(p) { 
+query.split('&').forEach(function(p) {
   p = p.split('=');
   params[p[0]] = p[1];
 });
@@ -142,9 +142,5 @@ function updateParams() {
 
   window.location.hash = res;
 }
-
-// for (var i = 0; i < (params.boids || STARTING_BOIDS); i++) {
-//   addEntity(entityOptions);
-// }
 
 engine.start();

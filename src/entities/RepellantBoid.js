@@ -13,6 +13,8 @@ class RepellantBoid extends BasicBoid {
     this.range = 696;
     this.speed = .1;
 
+    this.module = true;
+
     this.separationWeight = .01;
     this.groupSeparationWeight = .05;
 
@@ -94,15 +96,16 @@ class RepellantBoid extends BasicBoid {
   }
 
   update(delta) {
+    var rad = this.radius * 3;
     var transformVal;
 
     this.pos.scalePlusEquals(this.speed * delta, this.heading);
 
-    if (this.pos.x + this.radius >= this.xMax || this.pos.x <= this.radius) {
+    if (this.pos.x + rad >= this.xMax || this.pos.x <= rad) {
       this.heading.x = this.heading.x * -1;
     }
 
-    if (this.pos.y + this.radius >= this.yMax || this.pos.y <= this.radius) {
+    if (this.pos.y + rad >= this.yMax || this.pos.y <= rad) {
       this.heading.y = this.heading.y * -1;
     }
 

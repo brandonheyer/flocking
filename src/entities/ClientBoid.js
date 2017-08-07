@@ -9,6 +9,10 @@ class ClientBoid extends ActivityBoid {
     this.colorScale = options.colorScale;
 
     this.fill = this.colorScale(this.client);
+
+    if (this.module === 'unsubscribe') {
+      this.fill = '#a0a0a0';
+    }
   }
 }
 
