@@ -66,7 +66,7 @@ class ActivityBoid extends BaseBoid {
       this.lastUpdate = this.baseLifespan;
       this.lastRotate = 1000;
       this.dead = false;
-      this.speed = (this.speed < this.baseSpeed) ? this.baseSpeed : this.speed;
+      this.speed = (this.speed < this.baseSpeed) ? this.baseSpeed : Math.min(this.speed * 1.05, 1.25);
 
       if (this.boidElement) {
         this.boidElement.attr('opacity', 1);
