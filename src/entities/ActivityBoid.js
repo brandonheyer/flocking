@@ -37,23 +37,25 @@ class ActivityBoid extends BaseBoid {
     var degrees;
 
     this.lastUpdate -= delta;
-    this.lastRotate -= delta;
+    // this.lastRotate -= delta;
 
-    if (this.lastRotate < 0) {
-      this.lastRotate = 1000;
+    if (this.lastUpdate < 0) {
+      this.dead = true;
 
-      this.degrees = (Math.floor(Math.random() * WOBBLE_RANGE) - WOBBLE_RANGE / 2) * Math.PI / 180;
+      return;
     }
 
-    this.heading.rotate(this.degrees * delta / 1000);
+    // if (this.lastRotate < 0) {
+    //   this.lastRotate = 1000;
+    //
+    //   this.degrees = (Math.floor(Math.random() * WOBBLE_RANGE) - WOBBLE_RANGE / 2) * Math.PI / 180;
+    // }
+    //
+    // this.heading.rotate(this.degrees * delta / 1000);
 
     if (this.lastUpdate < this.baseLifespan * .75) {
       this.speed = this.baseSpeed * (this.lastUpdate / (this.baseLifespan * .75));
       this.boidElement.attr('opacity', (this.lastUpdate / (this.baseLifespan * .75)));
-    }
-
-    if (this.lastUpdate < 0) {
-      this.dead = true;
     }
 
     super.update(delta);
@@ -66,10 +68,15 @@ class ActivityBoid extends BaseBoid {
       this.lastUpdate = this.baseLifespan;
       this.lastRotate = 1000;
       this.dead = false;
-      this.speed = (this.speed < this.baseSpeed) ? this.baseSpeed : Math.min(this.speed * 1.05, 1.25);
 
-      if (this.boidElement) {
-        this.boidElement.attr('opacity', 1);
+      if (this.speed < this.baseSpeed) {
+        this.speed = this.baseSpeed
+
+        if (this.boidElement) {
+          this.boidElement.attr('opacity', 1);
+        }
+      } else {
+        this.speed = Math.min(this.speed * 1.05, 1.25);
       }
     }
   }

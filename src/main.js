@@ -18,4 +18,6 @@ $('.logo').css({
   top: (h - 84) / 2
 });
 
+
+engine.fps = $('.fk-fps');
 engine.start();

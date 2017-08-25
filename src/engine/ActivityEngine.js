@@ -34,6 +34,11 @@ class ActivityEngine extends Engine {
 
     this.moduleBoids = [];
     this.moduleBoidGroupLookup = {};
+    this.frames = 0;
+    this.currFrames = 0;
+    this.frameTimes = [];
+    this.frameTimes.length = 100;
+    this.frameTimes.fill(0);
 
     this.colorScale = d3.scaleOrdinal(d3.schemeCategory20b);
     range = this.colorScale.range();
@@ -250,7 +255,32 @@ class ActivityEngine extends Engine {
 
     this.lastUpdate += delta;
 
+    this.frameTimes[this.frames % 100] = delta;
+    this.frames++;
+    this.average = Math.round(1 / (_.mean(this.frameTimes) / 1000), 2);
+
+    this.fps.text(this.average);
+
     super.process(delta);
+  }
+
+  tick() {
+    var newLast = +(new Date());
+    var delta = this.delta = newLast - this.last;
+
+    this.last = newLast;
+
+    this.elements = this.svg.selectAll('g.entity')
+      .data(this.entities);
+
+    this.enterElements();
+    this.exitElements();
+
+    this.elements = this.svg.selectAll('g.entity');
+
+    this.process(delta);
+
+    this.timeout = setTimeout(this.tick.bind(this), (32 - (1000 / this.average) || 0));
   }
 }
 
