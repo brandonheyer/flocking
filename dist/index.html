@@ -23,6 +23,36 @@
         width: 356px;
         height: 84px;
       }
+
+      .fk-key {
+        position: fixed;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.1);
+        width: 100%;
+        padding: .5em;
+        font-family: Helvetica;
+        font-weight: bold;
+        font-size: 10px;
+      }
+
+      .fk-key-item {
+        float: left;
+        padding: .5em;
+        border-radius: 2em;
+        max-width: 7.5%;
+        padding-left: 2em;
+        line-height: 1.5em;
+        margin-left: 1em;
+      }
+
+      .fk-key-text {
+        background: rgba(255, 255, 255, .8);
+        padding: 0 .75em;
+        border-radius: 1em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     </style>
 
     <script src="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.js"></script>
@@ -70,10 +100,11 @@ c2.099,0,2.215-1.782,2.215-3.415v-6.613H167.825z"></path>
 </svg>
 
     <svg class="fk-canvas" width="800" height="800"> </svg>
+    <div class="fk-key"> </div>
 
 
 
-    <script src="js/demo.js"> </script>
+    <script src="js/main.js"> </script>
     <script>
       MP.api.setCredentials(window.location.hash.slice(1));
     </script>

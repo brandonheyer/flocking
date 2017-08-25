@@ -1,5 +1,7 @@
 import {BaseEntity, Point, Vector} from '2d-engine';
+import Orbiter from './Orbiter';
 
+var tempVector = new Vector(0, 0);
 var id = 0;
 
 class BaseBoid extends BaseEntity {
@@ -15,6 +17,53 @@ class BaseBoid extends BaseEntity {
     this.rangeSq = this.range * this.range;
 
     this.renderMethod = options.render;
+
+    this.alignmentVector = new Vector(0, 0);
+    this.cohesionVector = new Vector(0, 0);
+    this.separationVector = new Vector(0, 0);
+
+    this.groupAlignmentVector = new Vector(0, 0);
+    this.groupCohesionVector = new Vector(0, 0);
+    this.groupSeparationVector = new Vector(0, 0);
+  }
+
+  initializeVectors() {
+    this.closeEntities = [];
+
+    this.alignmentVector.set(0, 0);
+    this.groupAlignmentVector.set(0, 0);
+    this.cohesionVector.set(0, 0);
+    this.groupCohesionVector.set(0, 0);
+    this.separationVector.set(0, 0);
+    this.groupSeparationVector.set(0, 0);
+
+    this.closeGroup = 0;
+    this.nonGroup = 0;
+  }
+
+  initializeProperties(options) {
+    options = options || {};
+
+    this.weight = options.weight || 1;
+    this.group = options.group || 1;
+    this.speed = options.speed || 1;
+    this.radius = options.radius || 100;
+    this.radiusSq = this.radius * this.radius;
+    this.heading = new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1);
+    this.range = options.range || this.xScale.domain()[1];
+
+    this.alignmentWeight = .00001;
+    this.groupAlignmentWeight = .001;
+
+    this.cohesionWeight = .00001;
+    this.groupCohesionWeight = .09;
+
+    this.separationWeight = .00001;
+    this.groupSeparationWeight = .04;
+
+    if (options.initialize) {
+      options.initialize.bind(this)();
+    }
   }
 
   startingPosition() {
@@ -24,72 +73,104 @@ class BaseBoid extends BaseEntity {
     );
   }
 
-  initializeProperties(options) {
-    options = options || {};
+  locatecloseEntities(other) {
+    if (this.id === other.id || other instanceof Orbiter) {
+      return;
+    }
 
-    this.weight = options.weight || 1;
-    this.group = options.group || 1;
-    this.speed = options.speed || 1;
-    this.oldRadius = this.radius = options.radius || 100;
-    this.radiusSq = this.radius * this.radius;
-    this.heading = new Vector(0, 0);
-    this.range = options.range || this.xScale.domain()[1];
-    this.oldGroup = this.group;
+    tempVector.x = other.pos.x - this.pos.x;
+    tempVector.y = other.pos.y - this.pos.y;
 
-    if (options.initialize) {
-      options.initialize.bind(this)();
+    if (tempVector.magnitudeSq() <= this.rangeSq) {
+      this.closeEntities.push(other);
+
+      if (this.group === other.group) {
+        this.closeGroup++;
+      } else {
+        this.nonGroup++;
+      }
+    }
+  }
+
+  calculate(other) {
+    this.calculateAlignment(other);
+    this.calculateCohesion(other);
+    this.calculateSeparation(other);
+  }
+
+  calculateAlignment(other) {
+    tempVector.x = other.heading.x * other.speed;
+    tempVector.y = other.heading.y * other.speed;
+
+    if (this.group === other.group) {
+      this.groupAlignmentVector.plusEquals(tempVector);
+    } else {
+      this.alignmentVector.plusEquals(tempVector);
+    }
+  }
+
+  finalizeAlignment(vector, closeEntities) {
+    if (closeEntities) {
+      vector.divideEquals(closeEntities);
+    } else {
+
+    }
+  }
+
+  calculateCohesion(other) {
+    tempVector.x = other.pos.x;
+    tempVector.y = other.pos.y;
+
+    if (this.group === other.group) {
+      this.groupCohesionVector.plusEquals(tempVector);
+    } else {
+      this.cohesionVector.plusEquals(tempVector);
+    }
+  }
+
+  finalizeCohesion(vector, closeEntities) {
+    if (closeEntities) {
+      vector.divideEquals(closeEntities);
+      vector.minusEquals(this.pos);
+    } else {
+
+    }
+  }
+
+  calculateSeparation(other) {
+    var tempMagnitude;
+
+    tempVector.x = (other.pos.x - this.pos.x);
+    tempVector.y = (other.pos.y - this.pos.y);
+
+    tempMagnitude = tempVector.magnitudeSq();
+
+    if (this.group === other.group) {
+      this.groupSeparationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+    } else {
+      this.separationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+    }
+  }
+
+  finalizeSeparation(vector, closeEntities) {
+    if (closeEntities) {
+      vector.divideEquals(-1 * closeEntities);
+    } else {
+
     }
   }
 
   update(delta) {
-    var transformVal;
-
     super.update(delta);
 
-    transformVal = 'translate(' + this.xScale(this.pos.x) + ',' + this.yScale(this.pos.y) + ')';
-
-    if (this.group !== this.oldGroup) {
-      this.updateStyles();
-
-      this.oldGroup = this.group;
-    }
-
     this.element
-      .attr('transform', transformVal);
-  }
-
-  setSpeed(speed) {
-    this.speed = speed;
+      .attr('transform', 'translate(' + this.xScale(this.pos.x) + ',' + this.yScale(this.pos.y) + ')');
   }
 
   updateElements() {
     this.boidElement = this.element.select('.boid');
     this.rangElement = this.element.select('.boid-range');
     this.headingElement = this.element.select('line');
-  }
-
-  renderRange() {
-    this.rangeElement = this.element.append('circle')
-      .attr('r', this.xScale(this.range))
-      .attr('fill', 'none')
-      .attr('stroke', 'rgba(255, 0, 0, 0.1)')
-      .attr('class', 'boid-range');
-
-    this.oldRange = this.range;
-    this.oldRangeVisible = this.rangeVisible = true;
-  }
-
-  renderHeading() {
-    this.headingElement = this.element.append('line')
-      .attr('y1', 0)
-      .attr('x1', this.xScale(this.radius * 1.25))
-      .attr('y1', 0)
-      .attr('x2', 0)
-      .attr('stroke', 'rgba(255, 0, 0, 1)')
-      .attr('fill', 'rgba(255, 0, 0, 1)' )
-      .attr('stroke-width', this.xScale(this.radius / 2));
-
-    this.oldHeadingVisible = this.headingVisible = true;
   }
 
   updateStyles() {
@@ -107,6 +188,44 @@ class BaseBoid extends BaseEntity {
     }
   }
 
+  process() {
+    this.closeEntities.forEach(
+      this.calculate.bind(this)
+    );
+
+    if (this.closeGroup !== 0) {
+      this.finalizeAlignment(this.groupAlignmentVector, this.closeGroup, this.groupAlignmentWeight);
+      this.finalizeCohesion(this.groupCohesionVector, this.closeGroup, this.groupCohesionWeight);
+      this.finalizeSeparation(this.groupSeparationVector, this.closeGroup, this.groupSeparationWeight);
+    }
+
+    if (this.nonGroup !== 0) {
+      this.finalizeAlignment(this.alignmentVector, this.nonGroup, this.alignmentWeight);
+      this.finalizeCohesion(this.cohesionVector, this.nonGroup, this.cohesionWeight);
+      this.finalizeSeparation(this.separationVector, this.nonGroup, this.separationWeight);
+    }
+  }
+
+  finalize() {
+    this.alignmentVector.normalize();
+    this.cohesionVector.normalize();
+    this.separationVector.normalize();
+
+    this.groupAlignmentVector.normalize();
+    this.groupCohesionVector.normalize();
+    this.groupSeparationVector.normalize();
+
+    this.heading.scalePlusEquals(this.alignmentWeight, this.alignmentVector);
+    this.heading.scalePlusEquals(this.cohesionWeight, this.cohesionVector);
+    this.heading.scalePlusEquals(this.separationWeight, this.separationVector);
+
+    this.heading.scalePlusEquals(this.groupAlignmentWeight, this.groupAlignmentVector);
+    this.heading.scalePlusEquals(this.groupCohesionWeight, this.groupCohesionVector);
+    this.heading.scalePlusEquals(this.groupSeparationWeight, this.groupSeparationVector);
+
+    this.heading.normalize();
+  }
+
   destroy() {
     this.element.remove();
     this.element = undefined;
@@ -121,15 +240,6 @@ class BaseBoid extends BaseEntity {
     this.boidElement = el.append('circle');
 
     this.updateStyles();
-    this.renderRange();
-
-    if (this.rangeVisible) {
-
-    }
-
-    if (this.headingVisible) {
-      this.renderHeading();
-    }
   }
 }
 

@@ -13,6 +13,10 @@ class ClientBoid extends ActivityBoid {
     if (this.module === 'unsubscribe') {
       this.fill = '#a0a0a0';
     }
+
+    if (!this.client) {
+      this.fill = '#a0a0a0';
+    }
   }
 }
 

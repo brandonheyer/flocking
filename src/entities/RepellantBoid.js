@@ -1,19 +1,23 @@
 import {Point} from '2d-engine';
 
-import BasicBoid from './BasicBoid';
+import BaseBoid from './BaseBoid';
 
-class RepellantBoid extends BasicBoid {
+const ICON_SIZE = 348;
+const ICON_HEIGHT = 315;
+const ICON_SCALE = 3.5;
+
+class RepellantBoid extends BaseBoid {
   initializeProperties(options) {
     super.initializeProperties(options);
 
     this.fill = '#efefef';
-    this.radius = 174;
-    this.radiusSq = 174 * 174;
-    this.rangeVisible = true;
-    this.range = 696;
+    this.radius = (ICON_SIZE / 2) / (ICON_SCALE / 2);
+    this.radiusSq = this.radius * this.radius;
+    this.range = ICON_SIZE * 2;
     this.speed = .1;
 
     this.module = true;
+    this.moduleBoids = options.moduleBoids;
 
     this.separationWeight = .01;
     this.groupSeparationWeight = .05;
@@ -76,10 +80,26 @@ class RepellantBoid extends BasicBoid {
     );
   }
 
+  locatecloseEntities(other) {
+    if (this.id === other.id || (other.module !== true && other.group !== this.group)) {
+      return;
+    }
+
+    if (other.module !== true) {
+      this.closeEntities.push(other);
+
+      if (other.group === this.group) {
+        this.closeGroup++;
+      }
+    } else {
+      super.locatecloseEntities(other);
+    }
+  }
+
   render(canvas) {
     var el = this.element = canvas.append('g');
-    var imgHeight = 315;
-    var imgWidth = 348;
+    var imgHeight = ICON_HEIGHT;
+    var imgWidth = ICON_SIZE;
 
     el.append('circle')
       .attr('r', this.xScale(imgWidth / 2))
@@ -89,14 +109,14 @@ class RepellantBoid extends BasicBoid {
 
     el.append('image')
       .attr('href', './icons/' + this.image + '.png')
-      .attr('x', this.xScale(imgWidth / -3.5))
-      .attr('y', this.xScale(imgHeight / -3.5))
-      .attr('width', this.xScale(imgWidth / 1.75))
-      .attr('height', this.xScale(imgHeight / 1.75));
+      .attr('x', this.xScale(imgWidth / (-1 * ICON_SCALE)))
+      .attr('y', this.xScale(imgHeight / (-1 * ICON_SCALE)))
+      .attr('width', this.xScale(imgWidth / (ICON_SCALE / 2)))
+      .attr('height', this.xScale(imgHeight / (ICON_SCALE / 2)));
   }
 
   update(delta) {
-    var rad = this.radius * 3;
+    var rad = this.radius * 2;
     var transformVal;
 
     this.pos.scalePlusEquals(this.speed * delta, this.heading);

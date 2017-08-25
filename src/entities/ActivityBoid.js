@@ -1,11 +1,12 @@
 import {Vector} from '2d-engine';
 
-import BasicBoid from './BasicBoid';
+import BaseBoid from './BaseBoid';
 
 const LIFESPAN = 120000;
 const BASE_SPEED = .5;
+const WOBBLE_RANGE = 20;
 
-class ActivityBoid extends BasicBoid {
+class ActivityBoid extends BaseBoid {
   constructor(options) {
     super(options);
 
@@ -41,7 +42,7 @@ class ActivityBoid extends BasicBoid {
     if (this.lastRotate < 0) {
       this.lastRotate = 1000;
 
-      this.degrees = (Math.floor(Math.random() * 40) - 20) * Math.PI / 180;
+      this.degrees = (Math.floor(Math.random() * WOBBLE_RANGE) - WOBBLE_RANGE / 2) * Math.PI / 180;
     }
 
     this.heading.rotate(this.degrees * delta / 1000);
@@ -58,7 +59,7 @@ class ActivityBoid extends BasicBoid {
     super.update(delta);
   }
 
-  keepAlive(timestamp) {
+  keepAlive(timestamp, data) {
     if (this.timestamp !== timestamp) {
       this.timestamp = timestamp;
 
