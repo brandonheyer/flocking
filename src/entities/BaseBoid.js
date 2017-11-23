@@ -1,5 +1,6 @@
 import {BaseEntity, Point, Vector} from '2d-engine';
 
+var tempVector = new Vector(0, 0);
 var id = 0;
 
 class BaseBoid extends BaseEntity {
@@ -10,11 +11,20 @@ class BaseBoid extends BaseEntity {
 
     this.initializeProperties(options);
 
-    this.baseSpeed = this.speed;
+    this.heading = new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1);
     this.heading.normalize();
-    this.rangeSq = this.range * this.range;
 
-    this.renderMethod = options.render;
+    this.baseSpeed = this.speed;
+    this.oldRadius = this.radius;
+    this.oldGroup = this.group;
+
+    this.alignmentVector = new Vector(0, 0);
+    this.cohesionVector = new Vector(0, 0);
+    this.separationVector = new Vector(0, 0);
+
+    this.groupAlignmentVector = new Vector(0, 0);
+    this.groupCohesionVector = new Vector(0, 0);
+    this.groupSeparationVector = new Vector(0, 0);
   }
 
   startingPosition() {
@@ -28,22 +38,186 @@ class BaseBoid extends BaseEntity {
     options = options || {};
 
     this.weight = options.weight || 1;
-    this.group = options.group || 1;
-    this.speed = options.speed || 1;
-    this.oldRadius = this.radius = options.radius || 100;
-    this.heading = new Vector(0, 0);
+
     this.range = options.range || this.xScale.domain()[1];
-    this.oldGroup = this.group;
+    this.rangeSq = this.range * this.range;
+
+    this.xMax = this.xScale.domain()[1];
+    this.yMax = this.yScale.domain()[1];
+
+    this.alignmentWeight = options.alignmentWeight;
+    this.groupAlignmentWeight = options.groupAlignmentWeight;
+
+    this.cohesionWeight = options.cohesionWeight;
+    this.groupCohesionWeight = options.groupCohesionWeight;
+
+    this.separationWeight = options.separationWeight;
+    this.groupSeparationWeight = options.groupSeparationWeight;
 
     if (options.initialize) {
       options.initialize.bind(this)();
     }
+
+    this.renderMethod = options.render;
+  }
+
+  initializeVectors(length) {
+    this.closeEntities = [];
+    this.closeEntities.length = length;
+
+    this.alignmentVector.set(0, 0);
+    this.groupAlignmentVector.set(0, 0);
+    this.cohesionVector.set(0, 0);
+    this.groupCohesionVector.set(0, 0);
+    this.separationVector.set(0, 0);
+    this.groupSeparationVector.set(0, 0);
+
+    this.closeGroup = 0;
+    this.nonGroup = 0;
+  }
+
+  closeCheck(other) {
+    return other.id !== this.id && tempVector.magnitudeSq() <= this.rangeSq;
+  }
+
+  setTempVector(other) {
+    tempVector.x = other.pos.x - this.pos.x;
+    tempVector.y = other.pos.y - this.pos.y;
+  }
+
+  locatecloseEntities(other) {
+    this.setTempVector(other);
+
+    if (this.closeCheck(other)) {
+      this.closeEntities[this.closeGroup + this.nonGroup] = other;
+
+      if (this.group === other.group) {
+        this.closeGroup = this.closeGroup + 1;
+      } else {
+        this.nonGroup = this.nonGroup + 1;
+      }
+    }
+  }
+
+  calculate(other) {
+    this.calculateAlignment(other);
+    this.calculateCohesion(other);
+    this.calculateSeparation(other);
+  }
+
+  calculateAlignment(other) {
+    tempVector.x = other.heading.x * other.speed;
+    tempVector.y = other.heading.y * other.speed;
+
+    if (this.group === other.group) {
+      this.groupAlignmentVector.plusEquals(tempVector);
+    } else {
+      this.alignmentVector.plusEquals(tempVector);
+    }
+  }
+
+  finalizeAlignment(vector, closeEntities) {
+    if (closeEntities) {
+      vector.divideEquals(closeEntities);
+    } else {
+
+    }
+  }
+
+  calculateCohesion(other) {
+    tempVector.x = other.pos.x;
+    tempVector.y = other.pos.y;
+
+    if (this.group === other.group) {
+      this.groupCohesionVector.plusEquals(tempVector);
+    } else {
+      this.cohesionVector.plusEquals(tempVector);
+    }
+  }
+
+  finalizeCohesion(vector, closeEntities) {
+    if (closeEntities) {
+      vector.divideEquals(closeEntities);
+      vector.minusEquals(this.pos);
+    } else {
+
+    }
+  }
+
+  calculateSeparation(other) {
+    var tempMagnitude;
+
+    tempVector.x = (other.pos.x - this.pos.x);
+    tempVector.y = (other.pos.y - this.pos.y);
+
+    tempMagnitude = tempVector.magnitudeSq();
+
+    if (tempMagnitude === 0) {
+      return;
+    }
+
+    if (this.group === other.group) {
+      this.groupSeparationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+    } else {
+      this.separationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+    }
+  }
+
+  finalizeSeparation(vector, closeEntities) {
+    if (closeEntities) {
+      vector.divideEquals(-1 * closeEntities);
+    }
+  }
+
+  process() {
+    this.closeEntities.forEach(
+      this.calculate.bind(this)
+    );
+
+    if (this.closeGroup !== 0) {
+      this.finalizeAlignment(this.groupAlignmentVector, this.closeGroup, this.groupAlignmentWeight / 100);
+      this.finalizeCohesion(this.groupCohesionVector, this.closeGroup, this.groupCohesionWeight / 100);
+      this.finalizeSeparation(this.groupSeparationVector, this.closeGroup, this.groupSeparationWeight / 100);
+    }
+
+    if (this.nonGroup !== 0) {
+      this.finalizeAlignment(this.alignmentVector, this.nonGroup, this.alignmentWeight / 100);
+      this.finalizeCohesion(this.cohesionVector, this.nonGroup, this.cohesionWeight / 100);
+      this.finalizeSeparation(this.separationVector, this.nonGroup, this.separationWeight / 100);
+    }
+  }
+
+  finalize() {
+    if (this.nonGroup !== 0) {
+      this.alignmentVector.normalize();
+      this.cohesionVector.normalize();
+      this.separationVector.normalize();
+
+      this.heading.scalePlusEquals(this.alignmentWeight / 100, this.alignmentVector);
+      this.heading.scalePlusEquals(this.cohesionWeight / 100, this.cohesionVector);
+      this.heading.scalePlusEquals(this.separationWeight / 100, this.separationVector);
+    }
+
+    if (this.closeGroup !== 0) {
+      this.groupAlignmentVector.normalize();
+      this.groupCohesionVector.normalize();
+      this.groupSeparationVector.normalize();
+
+      this.heading.scalePlusEquals(this.groupAlignmentWeight / 100, this.groupAlignmentVector);
+      this.heading.scalePlusEquals(this.groupCohesionWeight / 100, this.groupCohesionVector);
+      this.heading.scalePlusEquals(this.groupSeparationWeight / 100, this.groupSeparationVector);
+    }
+    this.heading.normalize();
   }
 
   update(delta) {
     var transformVal;
 
-    super.update(delta);
+    // super.update(delta);
+
+    this.pos.scalePlusEquals(this.speed * delta, this.heading);
+    this.pos.x = (this.pos.x + this.xMax) % this.xMax
+    this.pos.y = (this.pos.y + this.yMax) % this.yMax;
 
     transformVal = 'translate(' + this.xScale(this.pos.x) + ',' + this.yScale(this.pos.y) + ')';
 
@@ -61,7 +235,6 @@ class BaseBoid extends BaseEntity {
 
     if (this.group !== this.oldGroup) {
       this.updateStyles();
-
       this.oldGroup = this.group;
     }
 
@@ -145,13 +318,11 @@ class BaseBoid extends BaseEntity {
   }
 
   render(canvas) {
-    var el = this.element = canvas.append('g');
-
-    this.fill = '#0000ff';
-
-    this.boidElement = el.append('circle');
-
-    this.updateStyles();
+    if (!this.element) {
+      this.element = canvas.append('g');
+      this.boidElement = this.element.append('circle');
+      this.updateStyles();
+    }
 
     if (this.rangeVisible) {
       this.renderRange();

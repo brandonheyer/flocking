@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import $ from 'jQuery';
 
 import Engine from './engine/Engine';
@@ -10,77 +11,81 @@ const STARTING_GROUPS = 3;
 const STARTING_SPEED = 5;
 
 var entityOptions;
+var engine;
+
 var query = window.location.hash.substring(1);
-var params = {};
-var groupCount;
-var speed1;
-var speed2;
-var speedSteps;
-var radius1;
-var radius2;
-var radiusSteps;
+var params = populateFromParams();
 
-query.split('&').forEach(function(p) {
-  p = p.split('=');
-  params[p[0]] = p[1];
-});
+var speed1 = params.speed || STARTING_SPEED;
+var speed2 = params.speed2 || speed1;
+var speedSteps = params.speedSteps || 1;
 
-speed1 = parseInt(params.speed || 10, 10);
-speed2 = params.speed2 || speed1;
-speedSteps = params.speedSteps || 1;
+var radius1 = params.radius || STARTING_RADIUS;
+var radius2 = params.radius2 || radius1;
+var radiusSteps = params.radiusSteps || 1;
 
-radius1 = parseInt(params.radius || 10, 10);
-radius2 = params.radius2 || radius1;
-radiusSteps = params.radiusSteps || 1;
+var groupCount = params.groupCount || STARTING_GROUPS;
 
-groupCount = params.groups || STARTING_GROUPS;
+function populateFromParams() {
+  params = {};
 
-entityOptions = {
-  range: params.range || STARTING_RANGE,
-  radius: params.radius || STARTING_RADIUS,
-  initialize: function() {
-    this.group = getRandomGroup();
-    this.speed = getRandomSpeed();
-    this.radius = getRandomRadius();
-  },
-  render: function() {
-    switch(this.group) {
-      case 0:
-        this.fill = '#00aa00';
-        break;
+  query.split('&').forEach(function(p) {
+    p = p.split('=');
+    params[p[0]] = parseFloat(p[1] || 0, 10);
+  });
 
-      case 1:
-        this.fill = '#0000ff';
-        break;
-
-      case 2:
-        this.fill = '#ff00ff';
-        break;
-
-      case 3:
-        this.fill = '#00ffff';
-        break;
-
-      case 4:
-        this.fill = '#ffff00';
-        break;
-    }
-  }
+  return params;
 }
 
-var engine = new Engine(
-  '.fk-canvas',
-  1400, 787,
-  5000, 2812,
-  {
+function updateEntityOptions() {
+  entityOptions = {
+    range: params.range || STARTING_RANGE,
+
     alignmentWeight: params.aw,
     cohesionWeight: params.cw,
     separationWeight: params.sw,
+
     groupAlignmentWeight: params.gaw,
     groupCohesionWeight: params.gcw,
-    groupSeparationWeight: params.gsw
-  }
-);
+    groupSeparationWeight: params.gsw,
+
+    xScale: engine.xScale,
+    yScale: engine.yScale,
+
+    rangeVisible: params.rangeVisible || false,
+    headingVisible: params.headingVisible || false,
+
+    initialize: function() {
+      this.group = getRandomGroup();
+      this.speed = getRandomSpeed();
+      this.radius = getRandomRadius();
+    },
+
+    render: function() {
+      switch(this.group) {
+        case 0:
+          this.fill = '#00aa00';
+          break;
+
+        case 1:
+          this.fill = '#0000ff';
+          break;
+
+        case 2:
+          this.fill = '#ff00ff';
+          break;
+
+        case 3:
+          this.fill = '#00ffff';
+          break;
+
+        case 4:
+          this.fill = '#ffff00';
+          break;
+      }
+    }
+  };
+}
 
 function getRandomGroup() {
   return Math.floor(Math.random() * groupCount);
@@ -114,8 +119,6 @@ function getRandomRadius() {
 
 function addEntity(options) {
   options = options || {};
-  options.xScale = engine.xScale;
-  options.yScale = engine.yScale;
 
   engine.addEntity(
     new BasicBoid(options)
@@ -131,10 +134,34 @@ function updateParams() {
     }
   }
 
-  res = res.substring(0);
+  updateEntityOptions();
 
-  window.location.hash = res;
+  engine.entities.forEach(function(entity) {
+    entity.initializeProperties(
+      _.omit(entityOptions, ['initialize'])
+    );
+  });
+
+  window.location.hash = res.substring(0);
 }
+
+speed1 = parseFloat(params.speed || 10, 10);
+speed2 = params.speed2 || speed1;
+speedSteps = params.speedSteps || 1;
+
+radius1 = parseFloat(params.radius || 10, 10);
+radius2 = params.radius2 || radius1;
+radiusSteps = params.radiusSteps || 1;
+
+groupCount = params.groups || STARTING_GROUPS;
+
+engine = new Engine(
+  '.fk-canvas',
+  1400, 787,
+  5000, 2812
+);
+
+updateEntityOptions();
 
 for (var i = 0; i < (params.boids || STARTING_BOIDS); i++) {
   addEntity(entityOptions);
@@ -146,22 +173,32 @@ $('.fk-stop').on('click', engine.stop.bind(engine));
 $('.fk-start').on('click', engine.start.bind(engine));
 
 $('.fk-toggle-range').on('click', function() {
-  engine.rangeVisible = !engine.rangeVisible;
-  entityOptions.rangeVisible = engine.rangeVisible;
+  params.rangeVisible = !entityOptions.rangeVisible;
+
+  engine.entities.forEach(function(entity) {
+    entity.rangeVisible = params.rangeVisible;
+  });
+
+  updateParams();
 });
 
 $('.fk-toggle-heading').on('click', function() {
-  engine.headingVisible = !engine.headingVisible;
-  entityOptions.headingVisible = engine.headingVisible;
+  params.headingVisible = !entityOptions.headingVisible;
+
+  engine.entities.forEach(function(entity) {
+    entity.headingVisible = params.headingVisible;
+  });
+
+  updateParams();
 });
 
 $('.fk-boids')
   .val(params.boids || STARTING_BOIDS)
-  .on('change blur', function() {
-    var diff = $(this).val() - engine.entities.length;
+  .on('change blur', (e) => {
+    var diff = parseFloat(e.currentTarget.value, 10) - engine.entities.length;
     var i;
 
-    params.boids = $(this).val();
+    params.boids = parseFloat(e.currentTarget.value, 10);
 
     if (diff < 0) {
       diff *= -1;
@@ -180,33 +217,21 @@ $('.fk-boids')
 
 $('.fk-range')
   .val(params.range || STARTING_RANGE)
-  .on('change blur', function() {
-    params.range = entityOptions.range = $(this).val();
-
-    engine.entities.forEach(function(entity) {
-      entity.range = entityOptions.range;
-    });
+  .on('change blur', (e) => {
+    params.range = entityOptions.range = parseFloat(e.currentTarget.value, 10);
 
     updateParams();
   });
 
-$('.fk-radius')
-  .val(params.radius || STARTING_RADIUS)
-  .on('change blur', function() {
-    radius1 = params.radius = parseInt($(this).val(), 10);
+$('.fk-radius').val(params.radius || STARTING_RADIUS)
+$('.fk-radius-2').val(params.radius2 || params.radius || STARTING_RADIUS)
+$('.fk-radius-steps').val(params.radiusSteps || 1);
 
-    engine.entities.forEach(function(entity) {
-      entity.radius = getRandomRadius();
-      entity.weight = entity.radius / radiusSteps;
-    });
-
-    updateParams();
-  });
-
-$('.fk-radius-2')
-  .val(params.radius2 || STARTING_SPEED)
-  .on('change blur', function() {
-    radius2 = params.radius2 = parseInt($(this).val(), 10);
+$('.fk-radius, .fk-radius-2, .fk-radius-steps')
+  .on('change blur', (e) => {
+    params.radius = radius1 = parseFloat($('.fk-radius').val() || STARTING_RADIUS, 10);
+    params.radius2 = radius2 = parseFloat($('.fk-radius-2').val() || STARTING_RADIUS, 10);
+    params.radiusSteps = radiusSteps = parseFloat($('.fk-radius-steps').val() || 1, 10);
 
     engine.entities.forEach(function(entity) {
       entity.radius = getRandomRadius();
@@ -215,82 +240,27 @@ $('.fk-radius-2')
     updateParams();
   });
 
-$('.fk-radius-steps')
-  .val(params.radiusSteps || 1)
-  .on('change blur', function() {
-    radiusSteps = params.radiusSteps = parseInt($(this).val(), 10);
+$('.fk-speed').val(params.speed || STARTING_SPEED)
+$('.fk-speed-2').val(params.speed2 || params.speed || STARTING_SPEED)
+$('.fk-speed-steps').val(params.speedSteps || 1)
 
-    engine.entities.forEach(function(entity) {
-      entity.radius = getRandomRadius();
-    });
-
-    updateParams();
-  });
-
-$('.fk-speed')
-  .val(params.speed || STARTING_SPEED)
-  .on('change blur', function() {
-    speed1 = params.speed = parseInt($(this).val(), 10);
+$('.fk-speed, .fk-speed-2, .fk-speed-steps')
+  .on('change blur', (e) => {
+    params.speed = speed1 = parseFloat($('.fk-speed').val() || STARTING_SPEED, 10);
+    params.speed2 = speed2 = parseFloat($('.fk-speed-2').val() || STARTING_SPEED, 10);
+    params.speedSteps = speedSteps = parseFloat($('.fk-speed-steps').val() || 1, 10);
 
     engine.entities.forEach(function(entity) {
       entity.speed = getRandomSpeed();
     });
-
-    updateParams();
-  });
-
-$('.fk-speed-2')
-  .val(params.speed2 || STARTING_SPEED)
-  .on('change blur', function() {
-    speed2 = params.speed2 = parseInt($(this).val(), 10);
-
-    engine.entities.forEach(function(entity) {
-      entity.speed = getRandomSpeed();
-    });
-
-    updateParams();
-  });
-
-$('.fk-speed-steps')
-  .val(params.speedSteps || 1)
-  .on('change blur', function() {
-    speedSteps = params.speedSteps = parseInt($(this).val(), 10);
-
-    engine.entities.forEach(function(entity) {
-      entity.speed = getRandomSpeed();
-    });
-
-    updateParams();
-  });
-
-$('.fk-weight-alignment')
-  .val(engine.alignmentWeight)
-  .on('change blur', function() {
-    params.aw = engine.alignmentWeight = $(this).val();
-
-    updateParams();
-  });
-
-$('.fk-weight-cohesion')
-  .val(engine.cohesionWeight)
-  .on('change blur', function() {
-    params.cw = engine.cohesionWeight = $(this).val();
-
-    updateParams();
-  });
-
-$('.fk-weight-separation')
-  .val(engine.separationWeight)
-  .on('change blur', function() {
-    params.sw = engine.separationWeight = $(this).val();
 
     updateParams();
   });
 
 $('.fk-groups')
   .val(params.groups || STARTING_GROUPS)
-  .on('change blur', function() {
-    params.groups = groupCount = $(this).val();
+  .on('change blur', (e) => {
+    params.groups = groupCount = parseFloat(e.currentTarget.value, 10) || 1;
 
     engine.entities.forEach(function(entity) {
       entity.group = getRandomGroup();
@@ -299,26 +269,50 @@ $('.fk-groups')
     updateParams();
   });
 
+$('.fk-weight-alignment')
+  .val(entityOptions.alignmentWeight)
+  .on('change blur', (e) => {
+    params.aw = parseFloat(e.currentTarget.value, 10) || 0;
+
+    updateParams();
+  });
+
+$('.fk-weight-cohesion')
+  .val(entityOptions.cohesionWeight)
+  .on('change blur', (e) => {
+    params.cw = parseFloat(e.currentTarget.value, 10) || 0;
+
+    updateParams();
+  });
+
+$('.fk-weight-separation')
+  .val(entityOptions.separationWeight)
+  .on('change blur', (e) => {
+    params.sw = parseFloat(e.currentTarget.value, 10) || 0;
+
+    updateParams();
+  });
+
 $('.fk-group-weight-alignment')
-  .val(engine.groupAlignmentWeight)
-  .on('change blur', function() {
-    params.gaw = engine.groupAlignmentWeight = $(this).val();
+  .val(entityOptions.groupAlignmentWeight)
+  .on('change blur', (e) => {
+    params.gaw = parseFloat(e.currentTarget.value, 10) || 0;
 
     updateParams();
   });
 
 $('.fk-group-weight-cohesion')
-  .val(engine.groupCohesionWeight)
-  .on('change blur', function() {
-    params.gcw = engine.groupCohesionWeight = $(this).val();
+  .val(entityOptions.groupCohesionWeight)
+  .on('change blur', (e) => {
+    params.gcw = parseFloat(e.currentTarget.value, 10) || 0;
 
     updateParams();
   });
 
 $('.fk-group-weight-separation')
-  .val(engine.groupSeparationWeight)
-  .on('change blur', function() {
-    params.gsw = engine.groupSeparationWeight = $(this).val();
+  .val(entityOptions.groupSeparationWeight)
+  .on('change blur', (e) => {
+    params.gsw = parseFloat(e.currentTarget.value, 10) || 0;
 
     updateParams();
   });
