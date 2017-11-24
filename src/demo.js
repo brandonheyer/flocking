@@ -2,13 +2,33 @@ import _ from 'lodash';
 import $ from 'jQuery';
 
 import Engine from './engine/Engine';
-import BasicBoid from './entities/BasicBoid';
+import BasicBoid from './entities/BaseBoid';
 
-const STARTING_BOIDS = 500;
-const STARTING_RADIUS = 10;
-const STARTING_RANGE = 500;
-const STARTING_GROUPS = 3;
-const STARTING_SPEED = 5;
+const defaultParams = params = {
+  boids: 200,
+
+  radius1: 25,
+  radius2: 25,
+  radiusSteps: 1,
+
+  speed1: 25,
+  speed2: 25,
+  speedSteps: 1,
+
+  range1: 200,
+  range2: 200,
+  rangeSteps: 1,
+
+  aw: 1,
+  cw: 1,
+  sw: 1,
+
+  groups: 1,
+
+  gaw: 1,
+  gcw: 1,
+  gsw: 1
+};
 
 var entityOptions;
 var engine;
@@ -16,18 +36,8 @@ var engine;
 var query = window.location.hash.substring(1);
 var params = populateFromParams();
 
-var speed1 = params.speed || STARTING_SPEED;
-var speed2 = params.speed2 || speed1;
-var speedSteps = params.speedSteps || 1;
-
-var radius1 = params.radius || STARTING_RADIUS;
-var radius2 = params.radius2 || radius1;
-var radiusSteps = params.radiusSteps || 1;
-
-var groupCount = params.groupCount || STARTING_GROUPS;
-
 function populateFromParams() {
-  params = {};
+  params = _.clone(defaultParams);
 
   query.split('&').forEach(function(p) {
     p = p.split('=');
@@ -39,7 +49,7 @@ function populateFromParams() {
 
 function updateEntityOptions() {
   entityOptions = {
-    range: params.range || STARTING_RANGE,
+    range: params.range1,
 
     alignmentWeight: params.aw,
     cohesionWeight: params.cw,
@@ -58,13 +68,15 @@ function updateEntityOptions() {
     initialize: function() {
       this.group = getRandomGroup();
       this.speed = getRandomSpeed();
+      // this.weight = 1 / this.speed;
+      this.weight = 1;
       this.radius = getRandomRadius();
     },
 
     render: function() {
       switch(this.group) {
         case 0:
-          this.fill = '#00aa00';
+          this.fill = '#00ff00';
           break;
 
         case 1:
@@ -72,15 +84,23 @@ function updateEntityOptions() {
           break;
 
         case 2:
-          this.fill = '#ff00ff';
+          this.fill = '#ff0000';
           break;
 
         case 3:
-          this.fill = '#00ffff';
+          this.fill = '#ff00ff';
           break;
 
         case 4:
           this.fill = '#ffff00';
+          break;
+
+        case 5:
+          this.fill = '#00ffff';
+          break;
+
+        case 6:
+          this.fill = '#f0f0f0';
           break;
       }
     }
@@ -88,33 +108,33 @@ function updateEntityOptions() {
 }
 
 function getRandomGroup() {
-  return Math.floor(Math.random() * groupCount);
+  return Math.floor(Math.random() * params.groups);
 }
 
 function getRandomSpeed() {
   var randomStep;
 
-  if (speed1 !== speed2) {
-    randomStep = Math.floor(Math.random() * speedSteps);
+  if (params.speed1 !== params.speed2) {
+    randomStep = Math.floor(Math.random() * params.speedSteps);
 
-    return (speed1 + ((speed2 - speed1) / speedSteps * randomStep)) / 100;
+    return (params.speed1 + ((params.speed2 - params.speed1) / params.speedSteps * randomStep)) / 100;
   }
 
-  return speed1 / 100;
+  return params.speed1 / 100;
 }
 
 function getRandomRadius() {
   var randomStep;
 
-  if (radius1 !== radius2) {
+  if (params.radius1 !== params.radius2) {
     randomStep = Math.pow(Math.sin(Math.random() * Math.PI / 2), 2);
     randomStep = (randomStep < 0.5) ? 2 * randomStep : 2 * (1 - randomStep);
-    randomStep = Math.floor(randomStep * radiusSteps);
+    randomStep = Math.floor(randomStep * params.radiusSteps);
 
-    return (radius1 + ((radius2 - radius1) / radiusSteps * randomStep));
+    return (params.radius1 + ((params.radius2 - params.radius1) / params.radiusSteps * randomStep));
   }
 
-  return radius1;
+  return params.radius1;
 }
 
 function addEntity(options) {
@@ -145,25 +165,18 @@ function updateParams() {
   window.location.hash = res.substring(0);
 }
 
-speed1 = parseFloat(params.speed || 10, 10);
-speed2 = params.speed2 || speed1;
-speedSteps = params.speedSteps || 1;
-
-radius1 = parseFloat(params.radius || 10, 10);
-radius2 = params.radius2 || radius1;
-radiusSteps = params.radiusSteps || 1;
-
-groupCount = params.groups || STARTING_GROUPS;
+var width = $('body').width();
+var height = $('body').height();
 
 engine = new Engine(
   '.fk-canvas',
-  1400, 787,
-  5000, 2812
+  width, height,
+  width * 4, height * 4
 );
 
 updateEntityOptions();
 
-for (var i = 0; i < (params.boids || STARTING_BOIDS); i++) {
+for (var i = 0; i < (params.boids); i++) {
   addEntity(entityOptions);
 }
 
@@ -193,7 +206,7 @@ $('.fk-toggle-heading').on('click', function() {
 });
 
 $('.fk-boids')
-  .val(params.boids || STARTING_BOIDS)
+  .val(params.boids)
   .on('change blur', (e) => {
     var diff = parseFloat(e.currentTarget.value, 10) - engine.entities.length;
     var i;
@@ -216,22 +229,22 @@ $('.fk-boids')
   });
 
 $('.fk-range')
-  .val(params.range || STARTING_RANGE)
+  .val(params.range1)
   .on('change blur', (e) => {
-    params.range = entityOptions.range = parseFloat(e.currentTarget.value, 10);
+    params.range1 = entityOptions.range = parseFloat(e.currentTarget.value, 10);
 
     updateParams();
   });
 
-$('.fk-radius').val(params.radius || STARTING_RADIUS)
-$('.fk-radius-2').val(params.radius2 || params.radius || STARTING_RADIUS)
-$('.fk-radius-steps').val(params.radiusSteps || 1);
+$('.fk-radius').val(params.radius1)
+$('.fk-radius-2').val(params.radius2)
+$('.fk-radius-steps').val(params.radiusSteps);
 
 $('.fk-radius, .fk-radius-2, .fk-radius-steps')
   .on('change blur', (e) => {
-    params.radius = radius1 = parseFloat($('.fk-radius').val() || STARTING_RADIUS, 10);
-    params.radius2 = radius2 = parseFloat($('.fk-radius-2').val() || STARTING_RADIUS, 10);
-    params.radiusSteps = radiusSteps = parseFloat($('.fk-radius-steps').val() || 1, 10);
+    params.radius1 = parseFloat($('.fk-radius').val());
+    params.radius2 = parseFloat($('.fk-radius-2').val());
+    params.radiusSteps = parseFloat($('.fk-radius-steps').val());
 
     engine.entities.forEach(function(entity) {
       entity.radius = getRandomRadius();
@@ -240,15 +253,15 @@ $('.fk-radius, .fk-radius-2, .fk-radius-steps')
     updateParams();
   });
 
-$('.fk-speed').val(params.speed || STARTING_SPEED)
-$('.fk-speed-2').val(params.speed2 || params.speed || STARTING_SPEED)
-$('.fk-speed-steps').val(params.speedSteps || 1)
+$('.fk-speed').val(params.speed1)
+$('.fk-speed-2').val(params.speed2)
+$('.fk-speed-steps').val(params.speedSteps)
 
 $('.fk-speed, .fk-speed-2, .fk-speed-steps')
   .on('change blur', (e) => {
-    params.speed = speed1 = parseFloat($('.fk-speed').val() || STARTING_SPEED, 10);
-    params.speed2 = speed2 = parseFloat($('.fk-speed-2').val() || STARTING_SPEED, 10);
-    params.speedSteps = speedSteps = parseFloat($('.fk-speed-steps').val() || 1, 10);
+    params.speed1 = parseFloat($('.fk-speed').val());
+    params.speed2 = parseFloat($('.fk-speed-2').val());
+    params.speedSteps = parseFloat($('.fk-speed-steps').val());
 
     engine.entities.forEach(function(entity) {
       entity.speed = getRandomSpeed();
@@ -258,9 +271,9 @@ $('.fk-speed, .fk-speed-2, .fk-speed-steps')
   });
 
 $('.fk-groups')
-  .val(params.groups || STARTING_GROUPS)
+  .val(params.groups)
   .on('change blur', (e) => {
-    params.groups = groupCount = parseFloat(e.currentTarget.value, 10) || 1;
+    params.groups = parseFloat(e.currentTarget.value);
 
     engine.entities.forEach(function(entity) {
       entity.group = getRandomGroup();

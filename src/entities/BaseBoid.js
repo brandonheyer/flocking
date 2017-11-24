@@ -14,6 +14,8 @@ class BaseBoid extends BaseEntity {
     this.heading = new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1);
     this.heading.normalize();
 
+    this.weight = 1;
+
     this.baseSpeed = this.speed;
     this.oldRadius = this.radius;
     this.oldGroup = this.group;
@@ -36,8 +38,6 @@ class BaseBoid extends BaseEntity {
 
   initializeProperties(options) {
     options = options || {};
-
-    this.weight = options.weight || 1;
 
     this.range = options.range || this.xScale.domain()[1];
     this.rangeSq = this.range * this.range;
@@ -109,6 +109,9 @@ class BaseBoid extends BaseEntity {
     tempVector.x = other.heading.x * other.speed;
     tempVector.y = other.heading.y * other.speed;
 
+    tempVector.x *= this.weight / other.weight;
+    tempVector.y *= this.weight / other.weight;
+
     if (this.group === other.group) {
       this.groupAlignmentVector.plusEquals(tempVector);
     } else {
@@ -127,6 +130,9 @@ class BaseBoid extends BaseEntity {
   calculateCohesion(other) {
     tempVector.x = other.pos.x;
     tempVector.y = other.pos.y;
+
+    tempVector.x *= this.weight / other.weight;
+    tempVector.y *= this.weight / other.weight;
 
     if (this.group === other.group) {
       this.groupCohesionVector.plusEquals(tempVector);
@@ -149,6 +155,9 @@ class BaseBoid extends BaseEntity {
 
     tempVector.x = (other.pos.x - this.pos.x);
     tempVector.y = (other.pos.y - this.pos.y);
+
+    tempVector.x *= this.weight / other.weight;
+    tempVector.y *= this.weight / other.weight;
 
     tempMagnitude = tempVector.magnitudeSq();
 
