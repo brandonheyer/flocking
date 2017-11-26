@@ -2,7 +2,8 @@ import _ from 'lodash';
 import $ from 'jQuery';
 
 import Engine from './engine/Engine';
-import BasicBoid from './entities/BaseBoid';
+import BasicBoid from './entities/BasicBoid';
+import EducationalBoid from './entities/EducationalBoid';
 
 const defaultParams = params = {
   boids: 200,
@@ -76,15 +77,15 @@ function updateEntityOptions() {
     render: function() {
       switch(this.group) {
         case 0:
-          this.fill = '#00ff00';
+          this.fill = '#c0f9c0';
           break;
 
         case 1:
-          this.fill = '#0000ff';
+          this.fill = '#c0c0f9';
           break;
 
         case 2:
-          this.fill = '#ff0000';
+          this.fill = '#c9c0c0';
           break;
 
         case 3:
@@ -100,7 +101,7 @@ function updateEntityOptions() {
           break;
 
         case 6:
-          this.fill = '#f0f0f0';
+          this.fill = '#00ff00';
           break;
       }
     }
@@ -141,7 +142,7 @@ function addEntity(options) {
   options = options || {};
 
   engine.addEntity(
-    new BasicBoid(options)
+    new EducationalBoid(options)
   );
 }
 

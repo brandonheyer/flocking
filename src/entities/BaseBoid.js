@@ -159,16 +159,18 @@ class BaseBoid extends BaseEntity {
     tempVector.x *= this.weight / other.weight;
     tempVector.y *= this.weight / other.weight;
 
-    tempMagnitude = tempVector.magnitudeSq();
-
-    if (tempMagnitude === 0) {
-      return;
-    }
+    // tempMagnitude = tempVector.magnitudeSq();
+    //
+    // if (tempMagnitude === 0) {
+    //   return;
+    // }
 
     if (this.group === other.group) {
-      this.groupSeparationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+      // this.groupSeparationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+      this.groupSeparationVector.plusEquals(tempVector);
     } else {
-      this.separationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+      // this.separationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+      this.separationVector.plusEquals(tempVector);
     }
   }
 
@@ -184,23 +186,23 @@ class BaseBoid extends BaseEntity {
     );
 
     if (this.closeGroup !== 0) {
-      this.finalizeAlignment(this.groupAlignmentVector, this.closeGroup, this.groupAlignmentWeight / 100);
-      this.finalizeCohesion(this.groupCohesionVector, this.closeGroup, this.groupCohesionWeight / 100);
-      this.finalizeSeparation(this.groupSeparationVector, this.closeGroup, this.groupSeparationWeight / 100);
+      this.finalizeAlignment(this.groupAlignmentVector, this.closeGroup);
+      this.finalizeCohesion(this.groupCohesionVector, this.closeGroup);
+      this.finalizeSeparation(this.groupSeparationVector, this.closeGroup);
     }
 
     if (this.nonGroup !== 0) {
-      this.finalizeAlignment(this.alignmentVector, this.nonGroup, this.alignmentWeight / 100);
-      this.finalizeCohesion(this.cohesionVector, this.nonGroup, this.cohesionWeight / 100);
-      this.finalizeSeparation(this.separationVector, this.nonGroup, this.separationWeight / 100);
+      this.finalizeAlignment(this.alignmentVector, this.nonGroup, this.alignmentWeight);
+      this.finalizeCohesion(this.cohesionVector, this.nonGroup, this.cohesionWeight);
+      this.finalizeSeparation(this.separationVector, this.nonGroup, this.separationWeight);
     }
   }
 
   finalize() {
     if (this.nonGroup !== 0) {
-      this.alignmentVector.normalize();
-      this.cohesionVector.normalize();
-      this.separationVector.normalize();
+      // this.alignmentVector.normalize();
+      // this.cohesionVector.normalize();
+      // this.separationVector.normalize();
 
       this.heading.scalePlusEquals(this.alignmentWeight / 100, this.alignmentVector);
       this.heading.scalePlusEquals(this.cohesionWeight / 100, this.cohesionVector);
@@ -208,14 +210,15 @@ class BaseBoid extends BaseEntity {
     }
 
     if (this.closeGroup !== 0) {
-      this.groupAlignmentVector.normalize();
-      this.groupCohesionVector.normalize();
-      this.groupSeparationVector.normalize();
+      // this.groupAlignmentVector.normalize();
+      // this.groupCohesionVector.normalize();
+      // this.groupSeparationVector.normalize();
 
       this.heading.scalePlusEquals(this.groupAlignmentWeight / 100, this.groupAlignmentVector);
       this.heading.scalePlusEquals(this.groupCohesionWeight / 100, this.groupCohesionVector);
       this.heading.scalePlusEquals(this.groupSeparationWeight / 100, this.groupSeparationVector);
     }
+
     this.heading.normalize();
   }
 
@@ -258,29 +261,13 @@ class BaseBoid extends BaseEntity {
       this.oldRangeVisible = this.rangeVisible;
     }
 
-    if (this.headingVisible !== this.oldHeadingVisible) {
-      if (this.headingVisible) {
-        this.renderHeading();
-      } else if (this.headingElement) {
-        this.headingElement.remove();
-        this.headingElement = undefined;
-      }
-
-      this.oldHeadingVisible = this.headingVisible;
-    }
-
-    if (this.headingVisible) {
-      transformVal += 'rotate(' + (this.heading.angle() * 180 / Math.PI) + ')';
-    }
-
     this.element
       .attr('transform', transformVal);
   }
 
   updateElements() {
     this.boidElement = this.element.select('.boid');
-    this.rangElement = this.element.select('.boid-range');
-    this.headingElement = this.element.select('line');
+    this.rangeElement = this.element.select('.boid-range');
   }
 
   renderRange() {
@@ -292,19 +279,6 @@ class BaseBoid extends BaseEntity {
 
     this.oldRange = this.range;
     this.oldRangeVisible = this.rangeVisible = true;
-  }
-
-  renderHeading() {
-    this.headingElement = this.element.append('line')
-      .attr('y1', 0)
-      .attr('x1', this.xScale(this.radius * 1.25))
-      .attr('y1', 0)
-      .attr('x2', 0)
-      .attr('stroke', 'rgba(255, 0, 0, 1)')
-      .attr('fill', 'rgba(255, 0, 0, 1)' )
-      .attr('stroke-width', this.xScale(this.radius / 2));
-
-    this.oldHeadingVisible = this.headingVisible = true;
   }
 
   updateStyles() {
@@ -335,10 +309,6 @@ class BaseBoid extends BaseEntity {
 
     if (this.rangeVisible) {
       this.renderRange();
-    }
-
-    if (this.headingVisible) {
-      this.renderHeading();
     }
   }
 }
