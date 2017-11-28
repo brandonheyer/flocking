@@ -62,6 +62,7 @@ module.exports = function (grunt) {
             [
               'babelify',
               {
+                sourceMaps: true,
                 'presets': [
                   'es2015'
                 ]

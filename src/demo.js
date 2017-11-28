@@ -141,9 +141,15 @@ function getRandomRadius() {
 function addEntity(options) {
   options = options || {};
 
-  engine.addEntity(
-    new EducationalBoid(options)
-  );
+  if (!engine.entities.length) {
+    engine.addEntity(
+      new EducationalBoid(options)
+    );
+  } else {
+    engine.addEntity(
+      new BasicBoid(options)
+    );
+  }
 }
 
 function updateParams() {

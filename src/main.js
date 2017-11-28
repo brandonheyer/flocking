@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import $ from 'jQuery';
 import * as Prism from 'prismjs';
 import showdown from 'showdown';
@@ -6,9 +7,7 @@ import presentation from './presentation';
 
 import Engine from './engine/Engine';
 import BasicBoid from './entities/BasicBoid';
-
-const STARTING_BOIDS = 100;
-const STARTING_RANGE = 1000;
+import EducationalBoid from './entities/EducationalBoid';
 
 var engine;
 
@@ -20,10 +19,15 @@ var presentationElement = $('.presentation-parent');
 var data = presentation();
 var cleanup;
 var lookup;
+var count;
 
 function makeEngine(engineOptions, entityOptions) {
-  var count = engineOptions.boidCount || 50;
-  engine = new Engine('.fk-canvas', 1400, 787, engineOptions.width || 4200, engineOptions.height || 2361, engineOptions);
+  count = engineOptions.boidCount || 50;
+  engine = new Engine(
+    '.fk-canvas',
+    1400, 787,
+    engineOptions.width || 4200, engineOptions.height || 2361
+  );
 
   for (var i = 0; i < count; i++) {
     addEntity(entityOptions);
@@ -37,74 +41,80 @@ function makeEngine(engineOptions, entityOptions) {
   }
 }
 
+var defaults = {
+  alignmentWeight: 0,
+  cohesionWeight: 0,
+  separationWeight: 0,
+
+  groupAlignmentWeight: 0,
+  groupCohesionWeight: 0,
+  groupSeparationWeight: 0,
+
+  count: 0,
+  BoidClass: function() {
+    if (this.count === count - 1) {
+      return EducationalBoid;
+    }
+
+    this.count++;
+
+    return BasicBoid;
+  },
+
+  initialize: function() {
+    this.group = 1;
+    this.speed = .5;
+    this.weight = 1;
+    this.radius = 50;
+    this.headingFill = '#e57713';
+    this.fill = '#666666';
+  },
+
+  range: 10000
+};
+
 var sectionProcessLookup = {
   meetBoids: function() {
-    return makeEngine({
-      rangeVisible: false,
-      headingVisible: true,
-      alignmentWeight: 0,
-      cohesionWeight: 0,
-      separationWeight: 0,
-      groupAlignmentWeight: 0,
-      groupCohesionWeight: 0,
-      groupSeparationWeight: 0
-    }, {
-      speed: .7,
-      radius: 75,
-      range: 10000
-    });
+    return makeEngine({}, defaults);
   },
 
   alignment: function() {
-    return makeEngine({
-      rangeVisible: false,
-      headingVisible: true,
-      alignmentWeight: 0.0025,
-      cohesionWeight: 0,
-      separationWeight: 0,
-      groupAlignmentWeight: 1,
-      groupCohesionWeight: 0,
-      groupSeparationWeight: 0
-    }, {
-      speed: .7,
-      radius: 75,
-      range: 10000
-    });
+    return makeEngine(
+      {},
+      _.defaults(
+        {
+          BoidClass: function() { return EducationalBoid; },
+          groupAlignmentWeight: 0.01
+        },
+        defaults
+      )
+    )
   },
 
   cohesion: function() {
-    return makeEngine({
-      rangeVisible: false,
-      headingVisible: true,
-      alignmentWeight: 0,
-      cohesionWeight: .025,
-      separationWeight: 0,
-      groupAlignmentWeight: 0,
-      groupCohesionWeight: 1,
-      groupSeparationWeight: 0
-    }, {
-      speed: .7,
-      radius: 75,
-      range: 10000
-    });
+    return makeEngine(
+      {},
+      _.defaults(
+        {
+          BoidClass: function() { return EducationalBoid; },
+          groupCohesionWeight: 0.025
+        },
+        defaults
+      )
+    )
   },
 
   separation: function() {
-    return makeEngine({
-      boidCount: 250,
-      rangeVisible: false,
-      headingVisible: true,
-      alignmentWeight: 0,
-      cohesionWeight: 0,
-      separationWeight: .025,
-      groupAlignmentWeight: 0,
-      groupCohesionWeight: 0,
-      groupSeparationWeight: 1
-    }, {
-      speed: .5,
-      radius: 25,
-      range: 10000
-    });
+    return makeEngine(
+      {},
+      _.defaults(
+        {
+          BoidClass: function() { return EducationalBoid; },
+          groupSeparationWeight: 0.025
+        },
+        defaults
+      )
+    )
   },
 
   groupsA: function() {
@@ -221,44 +231,77 @@ var sectionProcessLookup = {
   },
 
   rangeA: function() {
-    return makeEngine({
-      boidCount: 100,
-      rangeVisible: true,
-      headingVisible: true,
-      alignmentWeight: 1,
-      cohesionWeight: 1,
-      separationWeight: 1
-    }, {
-      speed: .5,
-      radius: 20,
-      range: 100
-    });
+    return makeEngine(
+      {
+        boidCount: 25,
+      },
+      _.defaults(
+        {
+          initialize: function() {
+            this.rangeVisible = true;
+            this.group = 1;
+            this.speed = .25;
+            this.weight = 1;
+            this.radius = 25;
+            this.headingFill = '#e57713';
+            this.fill = '#666666';
+          },
+          range: 150,
+          BoidClass: function() { return EducationalBoid; },
+          groupAlignmentWeight: 0.025,
+          groupCohesionWeight: 0.075,
+          groupSeparationWeight: 0.09
+        },
+        defaults
+      )
+    );
   },
 
   rangeB: function() {
-    return makeEngine({
-      boidCount: 100,
-      rangeVisible: true,
-      headingVisible: true,
-      alignmentWeight: 1,
-      cohesionWeight: 1,
-      separationWeight: 1
-    }, {
-      speed: .5,
-      radius: 20,
-      range: 500
-    });
+    return makeEngine(
+      {
+        boidCount: 25,
+      },
+      _.defaults(
+        {
+          initialize: function() {
+            this.rangeVisible = true;
+            this.group = 1;
+            this.speed = .25;
+            this.weight = 1;
+            this.radius = 25;
+            this.headingFill = '#e57713';
+            this.fill = '#666666';
+          },
+          range: 1000,
+          BoidClass: function() { return EducationalBoid; },
+          groupAlignmentWeight: 0.025,
+          groupCohesionWeight: 0.075,
+          groupSeparationWeight: 0.09
+        },
+        defaults
+      )
+    );
   }
 };
 
 function addEntity(options) {
+  var BoidClass;
+
   options = options || {};
   options.xScale = engine.xScale;
   options.yScale = engine.yScale;
-  options.BoidClass = options.BoidClass || BasicBoid;
+  BoidClass = options.BoidClass || BasicBoid;
+
+
+  if (_.isFunction(options.BoidClass)) {
+    BoidClass = options.BoidClass();
+  } else {
+
+  }
 
   engine.addEntity(
-    new options.BoidClass(options)
+    new BoidClass(options)
   );
 }
 
