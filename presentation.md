@@ -40,11 +40,17 @@
 * Update all entities, using time since last update
 * Repeat
 
-## Entities on Update
-* Adjust heading
-* Normalize heading
-* Scale heading by speed
-* Add heading to position
+# 2D Engine
+
+## Glossed Over Glossary
+* **Point**: An (x, y) pair
+* **Vector**: An (x, y) pair with direction and magnitude
+* **Magnitude**: The length of the vector
+* **Entity**: An object within the game engine, has a position (**Point**) and heading (**Vector**)
+
+## Other Facts
+* You can move **points** with **vectors**
+* You can add **vectors** with other **vectors**
 
 # Algorithms
 
@@ -162,24 +168,10 @@ groupSeparationWeight: 1
 ## Groups ID:groupsA
 <svg class="fk-canvas" width="800" height="800" style="background: #cccccc"> </svg>
 
-## Groups
-```
-range: 2500,
-
-alignmentWeight: .01,
-cohesionWeight: 1.2,
-separationWeight: 1,
-groupAlignmentWeight: 0,
-groupCohesionWeight: 1.5,
-groupSeparationWeight: -1
-```
-
-## Groups ID:groupsB
-<svg class="fk-canvas" width="800" height="800" style="background: #cccccc"> </svg>
 
 ## All Together Now ID:alltogether
 <svg class="fk-canvas" width="800" height="800" style="background: #cccccc"> </svg>
 
-# Variations
 
-## Part 2: Algorithm Variations
+## As Data Vizualization ID:dataviz
+<svg class="fk-canvas" width="800" height="800" style="background: #cccccc"> </svg>

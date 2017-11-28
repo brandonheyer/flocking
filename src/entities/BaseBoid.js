@@ -40,25 +40,28 @@ class BaseBoid extends BaseEntity {
     options = options || {};
 
     this.range = options.range || this.xScale.domain()[1];
-    this.rangeSq = this.range * this.range;
+    this.radius = options.radius;
+    this.fill = options.fill;
+    this.speed = options.speed || 0;
+    this.group = options.group || 0;
+    this.renderMethod = options.render;
+
+    this.alignmentWeight = options.alignmentWeight || 0;
+    this.groupAlignmentWeight = options.groupAlignmentWeight || 0;
+
+    this.cohesionWeight = options.cohesionWeight || 0;
+    this.groupCohesionWeight = options.groupCohesionWeight || 0;
+
+    this.separationWeight = options.separationWeight || 0;
+    this.groupSeparationWeight = options.groupSeparationWeight || 0;
 
     this.xMax = this.xScale.domain()[1];
     this.yMax = this.yScale.domain()[1];
-
-    this.alignmentWeight = options.alignmentWeight;
-    this.groupAlignmentWeight = options.groupAlignmentWeight;
-
-    this.cohesionWeight = options.cohesionWeight;
-    this.groupCohesionWeight = options.groupCohesionWeight;
-
-    this.separationWeight = options.separationWeight;
-    this.groupSeparationWeight = options.groupSeparationWeight;
+    this.rangeSq = this.range * this.range;
 
     if (options.initialize) {
       options.initialize.bind(this)();
     }
-
-    this.renderMethod = options.render;
   }
 
   initializeVectors(length) {
@@ -236,15 +239,6 @@ class BaseBoid extends BaseEntity {
       this.oldGroup = this.group;
     }
 
-    this.headingElement.attr(
-      'd',
-      'M 0 0 ' +
-      'L ' + (-1 * this.heading.y * this.radius / 3) + ' ' + (this.heading.x * this.radius / 3) +
-      ' L ' + (this.heading.x * this.radius / 1.5) + ' ' + (this.heading.y * this.radius / 1.5) +
-      ' L ' + (this.heading.y * this.radius / 3) + ' ' + (-1 * this.heading.x * this.radius / 3) +
-      ' z'
-    );
-
     if (this.rangeVisible !== this.oldRangeVisible) {
       if (this.rangeVisible) {
         this.renderRange();
@@ -285,24 +279,20 @@ class BaseBoid extends BaseEntity {
       .attr('r', this.xScale(this.radius))
       .attr('fill', this.fill || '#000000')
       .attr('class', 'boid');
-
-    this.headingElement
-      .attr('fill', this.headingFill || '#000000');
   }
 
   destroy() {
     this.element.remove();
     this.element = undefined;
     this.boidElement = undefined;
-    this.headingElement = undefined;
     this.rangeElement = undefined;
   }
 
   render(canvas) {
     if (!this.element) {
       this.element = canvas.append('g');
-      this.headingElement = this.element.append('path');
       this.boidElement = this.element.append('circle');
+
       this.updateStyles();
     }
 

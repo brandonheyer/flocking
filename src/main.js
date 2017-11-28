@@ -6,6 +6,7 @@ import showdown from 'showdown';
 import presentation from './presentation';
 
 import Engine from './engine/Engine';
+import ActivityEngine from './engine/ActivityEngine';
 import BasicBoid from './entities/BasicBoid';
 import EducationalBoid from './entities/EducationalBoid';
 
@@ -22,10 +23,10 @@ var lookup;
 var count;
 
 function makeEngine(engineOptions, entityOptions) {
-  count = engineOptions.boidCount || 50;
-  engine = new Engine(
+  count = engineOptions.boidCount;
+  engine = new (engineOptions.EngineClass || Engine)(
     '.fk-canvas',
-    1400, 787,
+    engineOptions.screenWidth || 1400, engineOptions.screenHeight || 787,
     engineOptions.width || 4200, engineOptions.height || 2361
   );
 
@@ -35,10 +36,25 @@ function makeEngine(engineOptions, entityOptions) {
 
   engine.start();
 
+  $('.fk-canvas')
+    .removeClass('.fk-canvas-final')
+    .on('click', function() {
+        (engine.timeout) ? engine.stop() : engine.start()
+    });
+
+  if (engineOptions.post) {
+    engineOptions.post();
+  }
+
   return function() {
     engine.stop();
-    $('.fk-canvas').empty();
-  }
+    $('.fk-canvas')
+      .off('click')
+      .empty()
+      .parent()
+      .find(':not(.fk-canvas)')
+        .remove();
+  };
 }
 
 var defaults = {
@@ -75,12 +91,16 @@ var defaults = {
 
 var sectionProcessLookup = {
   meetBoids: function() {
-    return makeEngine({}, defaults);
+    return makeEngine({
+      boidCount: 50
+    }, defaults);
   },
 
   alignment: function() {
     return makeEngine(
-      {},
+      {
+        boidCount: 50
+      },
       _.defaults(
         {
           BoidClass: function() { return EducationalBoid; },
@@ -93,7 +113,9 @@ var sectionProcessLookup = {
 
   cohesion: function() {
     return makeEngine(
-      {},
+      {
+        boidCount: 50
+      },
       _.defaults(
         {
           BoidClass: function() { return EducationalBoid; },
@@ -106,7 +128,9 @@ var sectionProcessLookup = {
 
   separation: function() {
     return makeEngine(
-      {},
+      {
+        boidCount: 50
+      },
       _.defaults(
         {
           BoidClass: function() { return EducationalBoid; },
@@ -118,116 +142,99 @@ var sectionProcessLookup = {
   },
 
   groupsA: function() {
-    return makeEngine({
-      boidCount: 500,
-      rangeVisible: false,
-      headingVisible: false,
-      alignmentWeight: .01,
-      cohesionWeight: .01,
-      separationWeight: .01,
-      groupAlignmentWeight: 1,
-      groupCohesionWeight: 2,
-      groupSeparationWeight: 1
-    }, {
-      BoidClass: BasicBoid,
-      radius: 8,
-      speed: .5,
-      range: 500,
-      initialize: function() {
-        this.group = Math.floor(Math.random() * 2);
+    return makeEngine(
+      {
+        boidCount: 20,
       },
-      render: function() {
-        switch(this.group) {
-          case 0:
-            this.fill = '#00aa00';
-            break;
+      _.defaults(
+        {
+          initialize: function() {
+            this.group = Math.floor(Math.random() * 2);
+            this.speed = .125;
+            this.weight = 1;
+            this.radius = 100;
+            this.headingFill = '#e57713';
 
-          case 1:
-            this.fill = '#0000ff';
-            break;
-        }
-      }
-    });
-  },
+            this.showGroupHeading = true;
+            this.showOtherHeading = true;
+            this.showOverallHeading = true;
+          },
+          render: function() {
+            switch(this.group) {
+              case 0:
+                this.fill = '#90cccc';
+                break;
 
-  groupsB: function() {
-    return makeEngine({
-      boidCount: 500,
-      rangeVisible: false,
-      headingVisible: false,
-      alignmentWeight: .01,
-      cohesionWeight: 1.2,
-      separationWeight: 1,
-      groupAlignmentWeight: 0,
-      groupCohesionWeight: 1.5,
-      groupSeparationWeight: -1
-    }, {
-      BoidClass: BasicBoid,
-      radius: 5,
-      range: 2500,
-      initialize: function() {
-        var randomStep;
+              case 1:
+                this.fill = '#606660';
+                break;
+            }
+          },
+          range: 1000,
+          BoidClass: function() { return EducationalBoid; },
+          groupAlignmentWeight: 0.0125,
+          groupCohesionWeight: 0.08,
+          groupSeparationWeight: 0.08,
 
-        this.group = Math.floor(Math.random() * 5);
-        this.speed = (50 + (10 * Math.floor(Math.random() * 5))) / 100;
-      },
-      render: function() {
-        switch(this.group) {
-          case 0:
-            this.fill = '#00aa00';
-            break;
-
-          case 1:
-            this.fill = '#0000ff';
-            break;
-
-          case 2:
-            this.fill = '#ff00ff';
-            break;
-
-          case 3:
-            this.fill = '#00ffff';
-            break;
-
-          case 4:
-            this.fill = '#ffff00';
-            break;
-        }
-      }
-    });
+          alignmentWeight: -.001,
+          cohesionWeight: 0,
+          separationWeight: 0.01
+        },
+        defaults
+      )
+    );
   },
 
   alltogether: function() {
-    return makeEngine({
-      boidCount: 250,
-      rangeVisible: false,
-      headingVisible: true,
-      alignmentWeight: .001,
-      cohesionWeight: .11,
-      separationWeight: .1,
-      groupAlignmentWeight: 1,
-      groupCohesionWeight: 1.1,
-      groupSeparationWeight: 1,
-    }, {
-      BoidClass: BasicBoid,
-      initialize: function() {
-        this.weight = Math.floor((Math.random() * 100) + 5);
+    return makeEngine(
+      {
+        boidCount: 250,
+      },
+      _.defaults(
+        {
+          initialize: function() {
+            this.group = Math.floor(Math.random() * 5);
+            this.speed = .2 * (1 + (this.group / 3));
+            this.weight = 1;
+            this.radius = 20;
+            this.headingFill = '#e57713';
+          },
+          render: function() {
+            switch(this.group) {
+              case 0:
+                this.fill = '#90cccc';
+                break;
 
-        if (this.weight < 99) {
-          this.weight = 2;
-          this.radius = 20;
-          this.range = 100;
-          this.speed = .75;
-          this.group = 1;
-        } else {
-          this.weight = 1;
-          this.radius = 60;
-          this.range = 200;
-          this.speed = 1.5;
-          this.group = 2;
-        }
-      }
-    });
+              case 1:
+                this.fill = '#606660';
+                break;
+
+              case 2:
+                this.fill = '#ccaa09';
+                break;
+
+              case 3:
+                this.fill = '#ee009f';
+                break;
+
+              case 4:
+                this.fill = '#009909';
+                break;
+            }
+          },
+          range: 500,
+          BoidClass: function() { return BasicBoid; },
+          groupAlignmentWeight: 0.0125,
+          groupCohesionWeight: 0.03,
+          groupSeparationWeight: 0.025,
+
+          alignmentWeight: -.0125,
+          cohesionWeight: 0.09,
+          separationWeight: 0.1
+        },
+        defaults
+      )
+    );
   },
 
   rangeA: function() {
@@ -245,6 +252,7 @@ var sectionProcessLookup = {
             this.radius = 25;
             this.headingFill = '#e57713';
             this.fill = '#666666';
+            this.showGroupHeading = true;
           },
           range: 150,
           BoidClass: function() { return EducationalBoid; },
@@ -272,16 +280,34 @@ var sectionProcessLookup = {
             this.radius = 25;
             this.headingFill = '#e57713';
             this.fill = '#666666';
+            this.showGroupHeading = true;
           },
           range: 1000,
           BoidClass: function() { return EducationalBoid; },
-          groupAlignmentWeight: 0.025,
-          groupCohesionWeight: 0.075,
-          groupSeparationWeight: 0.09
+          groupAlignmentWeight: 0.0125,
+          groupCohesionWeight: 0.08,
+          groupSeparationWeight: 0.08
         },
         defaults
       )
     );
+  },
+
+  dataviz: function() {
+    return makeEngine(
+      {
+        boidCount: 0,
+        EngineClass: ActivityEngine,
+        screenWidth: 787,
+        width: 4722,
+        height: 4722,
+        post: function() {
+          var iframe = $('<iframe>');
+          iframe.attr('src', 'tracking.html');
+          $('.fk-canvas').before(iframe);
+        }
+      }, {}
+    )
   }
 };
 

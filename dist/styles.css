@@ -66,3 +66,21 @@ img {
   margin: 0 auto;
   display: block;
 }
+
+
+[data-id="dataviz"] p {
+  text-align: center;
+}
+
+[data-id="dataviz"] iframe,
+[data-id="dataviz"] svg {
+  margin: 0;
+  display: inline-block;
+}
+
+[data-id="dataviz"] iframe {
+  border: 1px solid #cccccc;
+  height: 785px;
+  width: 563px;
+  margin-right: 50px;
+}
