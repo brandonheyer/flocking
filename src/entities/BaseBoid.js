@@ -14,6 +14,8 @@ class BaseBoid extends BaseEntity {
     this.heading = new Vector(Math.random() * 2 - 1, Math.random() * 2 - 1);
     this.heading.normalize();
 
+    this.weight = 1;
+
     this.baseSpeed = this.speed;
     this.oldRadius = this.radius;
     this.oldGroup = this.group;
@@ -37,28 +39,29 @@ class BaseBoid extends BaseEntity {
   initializeProperties(options) {
     options = options || {};
 
-    this.weight = options.weight || 1;
-
     this.range = options.range || this.xScale.domain()[1];
-    this.rangeSq = this.range * this.range;
+    this.radius = options.radius;
+    this.fill = options.fill;
+    this.speed = options.speed || 0;
+    this.group = options.group || 0;
+    this.renderMethod = options.render;
+
+    this.alignmentWeight = options.alignmentWeight || 0;
+    this.groupAlignmentWeight = options.groupAlignmentWeight || 0;
+
+    this.cohesionWeight = options.cohesionWeight || 0;
+    this.groupCohesionWeight = options.groupCohesionWeight || 0;
+
+    this.separationWeight = options.separationWeight || 0;
+    this.groupSeparationWeight = options.groupSeparationWeight || 0;
 
     this.xMax = this.xScale.domain()[1];
     this.yMax = this.yScale.domain()[1];
-
-    this.alignmentWeight = options.alignmentWeight;
-    this.groupAlignmentWeight = options.groupAlignmentWeight;
-
-    this.cohesionWeight = options.cohesionWeight;
-    this.groupCohesionWeight = options.groupCohesionWeight;
-
-    this.separationWeight = options.separationWeight;
-    this.groupSeparationWeight = options.groupSeparationWeight;
+    this.rangeSq = this.range * this.range;
 
     if (options.initialize) {
       options.initialize.bind(this)();
     }
-
-    this.renderMethod = options.render;
   }
 
   initializeVectors(length) {
@@ -117,11 +120,7 @@ class BaseBoid extends BaseEntity {
   }
 
   finalizeAlignment(vector, closeEntities) {
-    if (closeEntities) {
-      vector.divideEquals(closeEntities);
-    } else {
-
-    }
+    vector.divideEquals(closeEntities);
   }
 
   calculateCohesion(other) {
@@ -136,37 +135,36 @@ class BaseBoid extends BaseEntity {
   }
 
   finalizeCohesion(vector, closeEntities) {
-    if (closeEntities) {
-      vector.divideEquals(closeEntities);
-      vector.minusEquals(this.pos);
-    } else {
-
-    }
+    vector.x = (vector.x / closeEntities) - this.pos.x;
+    vector.y = (vector.y / closeEntities) - this.pos.y;
   }
 
   calculateSeparation(other) {
     var tempMagnitude;
 
-    tempVector.x = (other.pos.x - this.pos.x);
-    tempVector.y = (other.pos.y - this.pos.y);
+    tempVector.x = other.pos.x - this.pos.x;
+    tempVector.y = other.pos.y - this.pos.y;
 
-    tempMagnitude = tempVector.magnitudeSq();
+    tempMagnitude = tempVector.magnitude();
 
     if (tempMagnitude === 0) {
       return;
     }
 
+    tempVector.x *= -1 / tempMagnitude;
+    tempVector.y *= -1 / tempMagnitude;
+
     if (this.group === other.group) {
-      this.groupSeparationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+      // this.groupSeparationVector.plusEquals(tempVector);
+      this.groupSeparationVector.plusEquals(tempVector);
     } else {
-      this.separationVector.scalePlusEquals(1 / tempMagnitude, tempVector);
+      // this.separationVector.plusEquals(tempVector);
+      this.separationVector.plusEquals(tempVector);
     }
   }
 
   finalizeSeparation(vector, closeEntities) {
-    if (closeEntities) {
-      vector.divideEquals(-1 * closeEntities);
-    }
+
   }
 
   process() {
@@ -175,15 +173,15 @@ class BaseBoid extends BaseEntity {
     );
 
     if (this.closeGroup !== 0) {
-      this.finalizeAlignment(this.groupAlignmentVector, this.closeGroup, this.groupAlignmentWeight / 100);
-      this.finalizeCohesion(this.groupCohesionVector, this.closeGroup, this.groupCohesionWeight / 100);
-      this.finalizeSeparation(this.groupSeparationVector, this.closeGroup, this.groupSeparationWeight / 100);
+      this.finalizeAlignment(this.groupAlignmentVector, this.closeGroup);
+      this.finalizeCohesion(this.groupCohesionVector, this.closeGroup);
+      this.finalizeSeparation(this.groupSeparationVector, this.closeGroup);
     }
 
     if (this.nonGroup !== 0) {
-      this.finalizeAlignment(this.alignmentVector, this.nonGroup, this.alignmentWeight / 100);
-      this.finalizeCohesion(this.cohesionVector, this.nonGroup, this.cohesionWeight / 100);
-      this.finalizeSeparation(this.separationVector, this.nonGroup, this.separationWeight / 100);
+      this.finalizeAlignment(this.alignmentVector, this.nonGroup);
+      this.finalizeCohesion(this.cohesionVector, this.nonGroup);
+      this.finalizeSeparation(this.separationVector, this.nonGroup);
     }
   }
 
@@ -193,9 +191,9 @@ class BaseBoid extends BaseEntity {
       this.cohesionVector.normalize();
       this.separationVector.normalize();
 
-      this.heading.scalePlusEquals(this.alignmentWeight / 100, this.alignmentVector);
-      this.heading.scalePlusEquals(this.cohesionWeight / 100, this.cohesionVector);
-      this.heading.scalePlusEquals(this.separationWeight / 100, this.separationVector);
+      this.heading.scalePlusEquals(this.alignmentWeight, this.alignmentVector);
+      this.heading.scalePlusEquals(this.cohesionWeight, this.cohesionVector);
+      this.heading.scalePlusEquals(this.separationWeight, this.separationVector);
     }
 
     if (this.closeGroup !== 0) {
@@ -203,10 +201,11 @@ class BaseBoid extends BaseEntity {
       this.groupCohesionVector.normalize();
       this.groupSeparationVector.normalize();
 
-      this.heading.scalePlusEquals(this.groupAlignmentWeight / 100, this.groupAlignmentVector);
-      this.heading.scalePlusEquals(this.groupCohesionWeight / 100, this.groupCohesionVector);
-      this.heading.scalePlusEquals(this.groupSeparationWeight / 100, this.groupSeparationVector);
+      this.heading.scalePlusEquals(this.groupAlignmentWeight, this.groupAlignmentVector);
+      this.heading.scalePlusEquals(this.groupCohesionWeight, this.groupCohesionVector);
+      this.heading.scalePlusEquals(this.groupSeparationWeight, this.groupSeparationVector);
     }
+
     this.heading.normalize();
   }
 
@@ -249,53 +248,24 @@ class BaseBoid extends BaseEntity {
       this.oldRangeVisible = this.rangeVisible;
     }
 
-    if (this.headingVisible !== this.oldHeadingVisible) {
-      if (this.headingVisible) {
-        this.renderHeading();
-      } else if (this.headingElement) {
-        this.headingElement.remove();
-        this.headingElement = undefined;
-      }
-
-      this.oldHeadingVisible = this.headingVisible;
-    }
-
-    if (this.headingVisible) {
-      transformVal += 'rotate(' + (this.heading.angle() * 180 / Math.PI) + ')';
-    }
-
     this.element
       .attr('transform', transformVal);
   }
 
   updateElements() {
     this.boidElement = this.element.select('.boid');
-    this.rangElement = this.element.select('.boid-range');
-    this.headingElement = this.element.select('line');
+    this.rangeElement = this.element.select('.boid-range');
   }
 
   renderRange() {
     this.rangeElement = this.element.append('circle')
       .attr('r', this.xScale(this.range))
-      .attr('fill', 'none')
-      .attr('stroke', 'rgba(255, 0, 0, 0.1)')
+      .attr('fill', 'rgba(255, 255, 255, 0.1)')
+      .attr('stroke', 'rgba(255, 255, 255, 0.5)')
       .attr('class', 'boid-range');
 
     this.oldRange = this.range;
     this.oldRangeVisible = this.rangeVisible = true;
-  }
-
-  renderHeading() {
-    this.headingElement = this.element.append('line')
-      .attr('y1', 0)
-      .attr('x1', this.xScale(this.radius * 1.25))
-      .attr('y1', 0)
-      .attr('x2', 0)
-      .attr('stroke', 'rgba(255, 0, 0, 1)')
-      .attr('fill', 'rgba(255, 0, 0, 1)' )
-      .attr('stroke-width', this.xScale(this.radius / 2));
-
-    this.oldHeadingVisible = this.headingVisible = true;
   }
 
   updateStyles() {
@@ -305,7 +275,7 @@ class BaseBoid extends BaseEntity {
 
     this.boidElement
       .attr('r', this.xScale(this.radius))
-      .attr('fill', this.fill)
+      .attr('fill', this.fill || '#000000')
       .attr('class', 'boid');
   }
 
@@ -313,7 +283,6 @@ class BaseBoid extends BaseEntity {
     this.element.remove();
     this.element = undefined;
     this.boidElement = undefined;
-    this.headingElement = undefined;
     this.rangeElement = undefined;
   }
 
@@ -321,15 +290,12 @@ class BaseBoid extends BaseEntity {
     if (!this.element) {
       this.element = canvas.append('g');
       this.boidElement = this.element.append('circle');
+
       this.updateStyles();
     }
 
     if (this.rangeVisible) {
       this.renderRange();
-    }
-
-    if (this.headingVisible) {
-      this.renderHeading();
     }
   }
 }

@@ -38,7 +38,8 @@ module.exports = function (grunt) {
             [
               'babelify',
               {
-                'presets': [
+                sourceMaps: true,
+                presets: [
                   'es2015'
                 ]
               }
@@ -61,6 +62,7 @@ module.exports = function (grunt) {
             [
               'babelify',
               {
+                sourceMaps: true,
                 'presets': [
                   'es2015'
                 ]
@@ -116,10 +118,12 @@ module.exports = function (grunt) {
 
     delete config.presentation;
     delete config.dist;
+
+    console.log(grunt.config.getRaw('watch'));
   });
 
   grunt.registerTask('default', ['replace', 'browserify']);
-  grunt.registerTask('watch', ['replace', 'browserify', 'watch']);
+  grunt.registerTask('w', ['replace', 'browserify', 'watch']);
   grunt.registerTask('dist', ['replace', 'browserify:dist', 'noDemoWatch', 'watch']);
-  grunt.registerTask('demo', ['replace', 'browserify:demo', 'noDistWatch', 'watch']);
+  grunt.registerTask('demo', ['browserify:demo', 'noDistWatch', 'watch']);
 };

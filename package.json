@@ -9,6 +9,8 @@
     "2d-engine": "^0.3.4",
     "d3": "^4.9.1",
     "jquery": "^3.2.1",
+    "lodash": "^4.17.4",
+    "markdown-slideshow": "^1.0.6",
     "prismjs": "^1.6.0",
     "showdown": "^1.7.1"
   },

@@ -4,19 +4,22 @@
 
     <style>
       body {
-        padding: 2em;
+        padding: 0;
       }
 
       .fk-controls {
+        position: fixed;
+        top: 0;
+        height: 100%;
+        right: 0;
         font-size: 16px;
-        float: right;
-        margin-right: 2em;
+        padding-right: 2em;
       }
     </style>
-
+    <link rel="stylesheet" href="normalize.css" />
   </head>
   <body>
-    <svg class="fk-canvas" width="800" height="800" style="background: #cccccc"> </svg>
+    <svg class="fk-canvas" width="800" height="800" style="background: #ffffff"> </svg>
 
     <div class="fk-controls">
       <ul>
@@ -40,7 +43,7 @@
         <li>
           <label>Radius</label>
           <input class="fk-radius" type="number" />
-        </li><!--
+        </li>
         <li>
           <label>Radius 2</label>
           <input class="fk-radius-2" type="number" />
@@ -48,7 +51,7 @@
         <li>
           <label>Radius Steps</label>
           <input class="fk-radius-steps" type="number" />
-        </li>-->
+        </li>
         <li>
           <label>Range</label>
           <input class="fk-range" type="number" />
@@ -86,10 +89,6 @@
 
       <ul>
         <li>
-          <label>Groups</label>
-          <input class="fk-groups" type="number" />
-        </li>
-        <li>
           <label>Group Alignment Weight</label>
           <input class="fk-group-weight-alignment" type="number" />
         </li>
@@ -102,6 +101,11 @@
         <li>
           <label>Group Separation Weight</label>
           <input class="fk-group-weight-separation" type="number" />
+        </li>
+
+        <li>
+          <label>Groups</label>
+          <input class="fk-groups" type="number" />
         </li>
       </ul>
     </div>
