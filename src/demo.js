@@ -159,7 +159,7 @@ function updateParams() {
 
   engine.entities.forEach(function(entity) {
     entity.initializeProperties(
-      _.omit(entityOptions, ['initialize'])
+      entityOptions
     );
   });
 
