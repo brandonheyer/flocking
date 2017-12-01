@@ -9,6 +9,18 @@ section {
   width: 100%;
 }
 
+.heading-spacer {
+  padding-top: 3em;
+}
+
+.name-spacer {
+  padding-top: 7em;
+}
+
+.crowdskout {
+  width: 18%;
+}
+
 h2 {
   text-transform: uppercase;
   text-align: center;
@@ -28,10 +40,17 @@ h3 {
   margin: .75em;
   width: 50
   margin: 0 auto;
+  color: #333333;
 }
 
 h3:first-of-type {
   padding-top: 1.5em;
+}
+
+h4 {
+  font-size: 1.5rem;
+  text-align: center;
+  color: #333333;
 }
 
 svg {
@@ -55,9 +74,11 @@ pre {
 
 ul {
   width: 50%;
+  padding-top: 3em;
   margin: 0 auto;
   font-size: 1.5em;
   line-height: 1.75em;
+  color: #333333;
 }
 
 img {

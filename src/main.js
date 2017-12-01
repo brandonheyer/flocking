@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import $ from 'jQuery';
 import * as Prism from 'prismjs';
 import showdown from 'showdown';
+import * as MarkdownPresentation from 'markdown-slideshow';
 
 import presentation from './presentation';
 
@@ -170,7 +171,7 @@ var sectionProcessLookup = {
                 break;
             }
           },
-          range: 1000,
+          range: 500,
           BoidClass: function() { return EducationalBoid; },
           groupAlignmentWeight: 0.0125,
           groupCohesionWeight: 0.08,
@@ -225,10 +226,10 @@ var sectionProcessLookup = {
           range: 500,
           BoidClass: function() { return BasicBoid; },
           groupAlignmentWeight: 0.0125,
-          groupCohesionWeight: 0.03,
+          groupCohesionWeight: 0.04,
           groupSeparationWeight: 0.025,
 
-          alignmentWeight: -.0125,
+          alignmentWeight: -.00125,
           cohesionWeight: 0.09,
           separationWeight: 0.1
         },
@@ -282,7 +283,7 @@ var sectionProcessLookup = {
             this.fill = '#666666';
             this.showGroupHeading = true;
           },
-          range: 1000,
+          range: 500,
           BoidClass: function() { return EducationalBoid; },
           groupAlignmentWeight: 0.0125,
           groupCohesionWeight: 0.08,
@@ -331,83 +332,18 @@ function addEntity(options) {
   );
 }
 
-if (presentationElement.length) {
-  $((new showdown.Converter({
-    disableForced4SpacesIndentedSublists: true
-  })).makeHtml(data)).each((i, element) => {
-    var id;
+var pres = new MarkdownPresentation.MDP({
+  presentationElement: '.presentation-parent',
+  data: data,
+  sectionPreprocess: sectionProcessLookup
+});
 
-    switch(element.tagName) {
-      case 'H1':
-      case undefined:
-        return;
-
-      case 'H2':
-        console.log(element.innerText);
-        id = element.innerText.split('ID:');
-        element.innerText = id[0];
-        $child = $('<section data-id="' + id[1] + '">');
-        sections.push($child);
-        break;
-
-      default:
-
-    }
-
-    $child.append(element);
-
-/*
-    if (element.tagName === 'H3' && $child[0].tagName !== 'P') {
-      $child = $('<p class="content" />').appendTo($child);
-    }
-*/
-  });
-
-  if (window.location.hash) {
-    current = parseInt(window.location.hash.replace('#', ''), 10);
-  }
-
-  presentationElement.empty().append(sections[current]);
-  sections[current].fadeIn();
-
-  function updateCurrent() {
-    lookup = sectionProcessLookup[
-      sections[current].attr('data-id')
-    ];
-
-    if (lookup) {
-      cleanup = lookup();
-    }
-
-    sections[current].find('code').html(Prism.highlight(sections[current].find('code').text(), Prism.languages.javascript));
-  }
-
-  updateCurrent();
-
-  $('body').keyup(function(event) {
-    var oldCurrent = current;
-
-    if (event.which === 37) {
-      if (current > 0) {
-        current--;
-      }
-    } else if (event.which === 32 || event.which === 13) {
-      if (current <  sections.length - 1) {
-        current++;
-      }
-    }
-
-    if (current !== oldCurrent) {
-      if (cleanup) {
-        cleanup();
-      }
-
-      presentationElement.children().first().detach().hide();
-      sections[current].appendTo(presentationElement.empty()).fadeIn();
-
-      updateCurrent();
-
-      window.location.hash = current;
-    }
-  });
+pres.tagLookup['P'] = function(element, sections) {
+  return;
 }
+
+pres.tagLookup['BLOCKQUOTE'] = function(element, sections) {
+  return false;
+}
+
+pres.start();

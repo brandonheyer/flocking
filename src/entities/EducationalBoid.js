@@ -90,8 +90,8 @@ class EducationalBoid extends BasicBoid {
 
     this.alignmentElement = this.renderDisplayLine('125, 125, 255');
     this.groupAlignmentElement = this.renderDisplayLine('0, 0, 255');
-    this.cohesionElement = this.renderDisplayLine('125, 255, 125');
-    this.groupCohesionElement = this.renderDisplayLine('0, 255, 0');
+    this.cohesionElement = this.renderDisplayLine('125, 255, 150');
+    this.groupCohesionElement = this.renderDisplayLine('255, 0, 150');
     this.separationElement = this.renderDisplayLine('255, 125, 125');
     this.groupSeparationElement = this.renderDisplayLine('255, 0, 0');
 

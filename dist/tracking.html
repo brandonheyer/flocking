@@ -18,26 +18,83 @@
         mixpanel.init("a1bd5c140fb46223e0d7699ccacd0ea7");
       </script>
     <!-- end Mixpanel -->
+
+    <style>
+      html, body, * {
+        box-sizing: border-box;
+        padding: 0;
+        margin: 0;
+        font-family: Helvetica, sans-serif;
+      }
+
+      nav {
+        width: 100%;
+        text-align: center;
+      }
+
+      ul {
+        clear: both;
+        overflow: hidden;
+        padding-top: 3em;
+        margin: 0 auto;
+        display: block;
+        width: 90%;
+      }
+
+      li {
+        margin: 0;
+        padding: .5em 1em;
+        color: #090909;
+        font-weight: bold;
+        list-style: none;
+        display: block;
+        float: left;
+        width: 25%;
+        text-align: center;
+        cursor: pointer;
+      }
+
+      [for='l1'] {
+        background: #73BECC;
+      }
+
+      [for='l2'] {
+        background: #B26486;
+      }
+
+      [for='l3'] {
+        background: #FFF9C2;
+      }
+
+      [for='l4'] {
+        background: #B88CFF;
+      }
+
+      .content {
+        padding: 5em;
+        text-align: center;
+      }
+    </style>
   </head>
 
   <body>
     <header>
       <nav>
         <ul>
-          <li for="l1">Link 1</l1>
-          <li for="l2">Link 2</li>
-          <li for="l3">Link 3</li>
-          <li for="l4">Link 4</li>
+          <li for="l1">Section 1</l1>
+          <li for="l2">Section 2</li>
+          <li for="l3">Section 3</li>
+          <li for="l4">Section 4</li>
         </ul>
       </nav>
     </header>
 
     <div class="content">
       <div>Select a link above to be tracked!</div>
-      <div title="l1">Content 1</div>
-      <div title="l2">Content 2</div>
-      <div title="l3">Content 3</div>
-      <div title="l4">Content 4</div>
+      <div title="l1">Flocking to section 1</div>
+      <div title="l2">Flocking to section 2</div>
+      <div title="l3">Flocking to section 3</div>
+      <div title="l4">Flocking to section 4</div>
     </div>
 
     <!-- start site -->

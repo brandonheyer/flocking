@@ -144,8 +144,6 @@ class BaseBoid extends BaseEntity {
 
     tempVector.x = other.pos.x - this.pos.x;
     tempVector.y = other.pos.y - this.pos.y;
-    // tempVector.x = this.pos.x - other.pos.x;
-    // tempVector.y = this.pos.y - other.pos.y;
 
     tempMagnitude = tempVector.magnitude();
 

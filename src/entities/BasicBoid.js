@@ -16,6 +16,10 @@ class BasicBoid extends BaseBoid {
     );
   }
 
+  initializeProperties(options) {
+    super.initializeProperties(options);
+  }
+
   updateStyles() {
     super.updateStyles();
 

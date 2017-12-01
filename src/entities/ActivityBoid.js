@@ -3,8 +3,8 @@ import {Vector} from '2d-engine';
 import BasicBoid from './BasicBoid';
 
 const MAX_LIFE = 60000;
-const MAX_SPEED = .8;
-const START_SPEED = .3;
+const MAX_SPEED = 1.1;
+const START_SPEED = .5;
 
 class ActivityBoid extends BasicBoid {
   initializeProperties(options) {
@@ -19,13 +19,15 @@ class ActivityBoid extends BasicBoid {
 
     this.headingFill = '#e57713';
 
-    this.groupAlignmentWeight = .001;
-    this.groupCohesionWeight = .029;
-    this.groupSeparationWeight = .009;
+    this.groupAlignmentWeight = .0001;
+    this.groupCohesionWeight = .045;
+    this.groupSeparationWeight = .015;
 
     this.alignmentWeight = 0;
     this.cohesionWeight = 0;
     this.separationWeight = .1;
+
+    this.mpId = options.mpId;
   }
 
   closeCheck(other) {
@@ -56,7 +58,7 @@ class ActivityBoid extends BasicBoid {
 
   keepAlive() {
     this.life = MAX_LIFE;
-    this.speed = START_SPEED;
+    this.speed = Math.min(MAX_SPEED, Math.max(START_SPEED, this.speed + 0.05));
     this.dead = false;
     this.boidElement.attr('opacity', 1);
     this.headingElement.attr('opacity', 1);
